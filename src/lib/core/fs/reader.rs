@@ -1,4 +1,4 @@
-use crate::core::html::minify::HtmlMinifier;
+
 use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
 use crate::error::Error;

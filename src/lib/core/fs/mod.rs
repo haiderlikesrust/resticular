@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use downcast_rs::{Downcast, impl_downcast};
+
 use mopa::{Any, mopafy};
 use super::IntoInner;
 pub mod reader;

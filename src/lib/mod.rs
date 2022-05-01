@@ -18,9 +18,9 @@ pub fn process() -> Result<(), Error> {
     let config = Config::read_config()?;
     match config {
         Config {
-            out_dir,
+            out_dir: _,
             dir,
-            lazy_images,
+            lazy_images: _,
         } => {
             let reader = Reader::new(dir.into());
             let f = reader.read_dir_files()?;

@@ -3,7 +3,7 @@ pub mod minify;
 use lol_html::{element, HtmlRewriter, Settings};
 
 use super::{
-    fs::{reader::FileHolder, Content, Data, Html, Markdown},
+    fs::{reader::FileHolder, Data, Html},
     IntoInner,
 };
 
