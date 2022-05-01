@@ -3,6 +3,7 @@ pub mod config;
 pub mod fs;
 /// Module for handling markdown.
 pub mod markdown;
+pub mod html;
 
 /// This trait basically implements the functionality of returning whats inside the tuple struct.
 /// ```
@@ -20,5 +21,5 @@ pub trait IntoInner {
 
     /// This method takes the ownership of the struct, which is erased from memory after this is ran and returns the `Output`
     ///  what you have given it.
-    fn into_inner(self) -> Self::Output;
+    fn into_inner(&self) -> Self::Output;
 }

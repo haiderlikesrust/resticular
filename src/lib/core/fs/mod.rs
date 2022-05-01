@@ -1,3 +1,7 @@
+use std::fmt::Debug;
+
+use downcast_rs::{Downcast, impl_downcast};
+use mopa::{Any, mopafy};
 use super::IntoInner;
 pub mod reader;
 
@@ -24,7 +28,9 @@ impl Html {
         Self(d.to_string())
     }
 }
-pub trait Content { }
+
+pub trait Content: Any + Debug { }
+mopafy!{Content}
 #[derive(Debug, Clone)]
 /// A newtype on top string, which is responsible for holding the markdown data
 pub struct Markdown(String);
@@ -56,28 +62,28 @@ impl From<&str> for Html {
 impl IntoInner for Markdown {
     type Output = String;
 
-    fn into_inner(self) -> Self::Output {
-        self.0
+    fn into_inner(&self) -> Self::Output {
+        self.0.to_owned()
     }
 }
 
 impl IntoInner for Html {
     type Output = String;
 
-    fn into_inner(self) -> Self::Output {
-        self.0
+    fn into_inner(&self) -> Self::Output {
+        self.0.to_owned()
     }
 }
 
-impl<T> IntoInner for Data<T> {
+impl<T: Clone> IntoInner for Data<T> {
     type Output = T;
 
-    fn into_inner(self) -> Self::Output {
-        self.file_content
+    fn into_inner(&self) -> Self::Output {
+        self.file_content.clone()
     }
 }
 
 
 impl Content for Html {}
 impl Content for Markdown {}
-impl<T> Content  for Data<T> {}
+impl<T: 'static + Debug> Content  for Data<T> {}

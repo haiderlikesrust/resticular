@@ -1,35 +1,36 @@
-use crate::core::config::Config;
+use crate::core::html::minify::HtmlMinifier;
+use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
 use crate::error::Error;
+use std::fmt::Debug;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
 
 use super::{Content, Data, Html, Markdown};
 
+#[derive(Debug, Clone)]
 pub struct FileContent(String);
 impl IntoInner for FileContent {
     type Output = String;
 
-    fn into_inner(self) -> Self::Output {
-        self.0
+    fn into_inner(&self) -> Self::Output {
+        self.0.to_owned()
     }
 }
-
+#[derive(Debug, Clone)]
 pub struct FileHolder<T> {
     pub path: PathBuf,
-    pub content: T
+    pub content: T,
+    pub ext: String,
 }
 impl<T> FileHolder<T> {
-    pub fn new(path: PathBuf, content: T) -> Self {
-        Self {
-            path,
-            content
-        }
+    pub fn new(path: PathBuf, content: T, ext: String) -> Self {
+        Self { path, content, ext }
     }
 }
 
-impl<T> Content for FileHolder<T> {}
+impl<T: 'static + Debug> Content for FileHolder<T> {}
 impl FileContent {
     pub fn new(content: String) -> Self {
         Self(content)
@@ -65,7 +66,10 @@ impl From<Data<FileContent>> for Data<Markdown> {
 #[derive(Debug, Clone)]
 pub struct Writer;
 impl Writer {
-    pub fn write<T: IntoInner<Output = String>>(path: PathBuf, content: Data<T>) -> Result<(), Error> {
+    pub fn write<T: IntoInner<Output = String> + Clone>(
+        path: PathBuf,
+        content: Data<T>,
+    ) -> Result<(), Error> {
         let content = content.into_inner().into_inner();
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
@@ -112,12 +116,12 @@ impl Reader {
             match path_ext {
                 "html" => {
                     let file_data: Data<Html> = Reader::reader_out(path.to_path_buf())?.into();
-                    let file_holder = FileHolder::new(path.clone(), file_data);
+                    let file_holder = FileHolder::new(path.clone(), file_data, "html".to_owned());
                     data.push(Box::new(file_holder));
                 }
                 "md" => {
                     let file_data: Data<Markdown> = Reader::reader_out(path.to_path_buf())?.into();
-                    let file_holder = FileHolder::new(path.clone(), file_data);
+                    let file_holder = FileHolder::new(path.clone(), file_data, "md".to_owned());
                     data.push(Box::new(file_holder));
                 }
                 _ => continue,
@@ -125,4 +129,42 @@ impl Reader {
         }
         Ok(data)
     }
+}
+
+pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<Data<Html>>> {
+    let mut output = Vec::new();
+    for file in files {
+      
+        let downcasted = file.downcast_ref::<FileHolder<Data<Markdown>>>();
+        match downcasted {
+            Some(f) => {
+                let file_content = f.clone().content.into_inner();
+                let markdown_parser = MarkdownParser::new(Data::new(file_content));
+                let f_clone = f.clone();
+                output.push(FileHolder::new(
+                    f_clone.path,
+                    Data::new(markdown_parser.convert().into_inner()),
+                    "md".to_string(),
+                ));
+            }
+            None => {
+                let downcasted_html = file.downcast_ref::<FileHolder<Data<Html>>>();
+                match downcasted_html {
+                    Some(f) => {
+                        let file_content = f.clone().content.into_inner();
+                        let f_clone = f.clone();
+                        output.push(FileHolder::new(
+                            f_clone.path,
+                            Data::new(file_content),
+                            "html".to_string(),
+                        ));
+                    }
+                    None => {
+                        panic!("Error")
+                    }
+                }
+            }
+        }
+    }
+    output
 }

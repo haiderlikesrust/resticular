@@ -1,0 +1,3 @@
+out_dir = "dist"
+dir = "source"
+lazy_images = true

@@ -7,6 +7,7 @@ use toml::from_str;
 pub struct Config {
     pub out_dir: String,
     pub dir: String,
+    pub lazy_images: Option<bool>
 }
 
 impl Config {
