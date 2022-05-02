@@ -6,7 +6,7 @@ use super::IntoInner;
 pub mod reader;
 
 /// A generic structure for holding `data`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Data<T> {
     /// `file_content` will be taken by the [`super::markdown::MarkdownParser`] struct and then
     /// the html will be parsed and will return another [`Data`] struct with HTML content.
@@ -19,7 +19,7 @@ impl<T> Data<T> {
         Self { file_content: d }
     }
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 /// A newtype on top string, which is responsible for holding the html data
 pub struct Html(String);
 impl Html {
@@ -34,7 +34,12 @@ mopafy!{Content}
 #[derive(Debug, Clone)]
 /// A newtype on top string, which is responsible for holding the markdown data
 pub struct Markdown(String);
-
+impl Markdown {
+    /// Function for creating a `[Html]` struct.
+    pub fn new(d: &str) -> Self {
+        Self(d.to_string())
+    }
+}
 impl From<String> for Markdown {
     fn from(d: String) -> Self {
         Self(d)

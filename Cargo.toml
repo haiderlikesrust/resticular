@@ -5,6 +5,8 @@ version = "0.1.0"
 [dependencies]
 downcast-rs = "*"
 lol_html = "*"
+minify-html = "0.8.0"
+mopa = "0.2.2"
 notify = "4.0.17"
 pulldown-cmark = "0.9.1"
 serde = "*"
@@ -12,9 +14,11 @@ serde_derive = "*"
 tera = "*"
 thiserror = "*"
 toml = "*"
+tracing = "*"
+tracing-subscriber = "0.2.0"
+
 ws = "*"
-minify-html = "0.8.0"
-mopa = "0.2.2"
+
 [lib]
 name = "resticular"
 path = "src/lib/mod.rs"

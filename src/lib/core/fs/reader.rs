@@ -23,10 +23,19 @@ pub struct FileHolder<T> {
     pub path: PathBuf,
     pub content: T,
     pub ext: String,
+    pub file_name: String
+}
+
+impl PartialEq for FileHolder<Data<Html>> {
+    fn eq(&self, other: &Self) -> bool {
+        self.path == other.path && self.content == other.content && self.ext == other.ext && self.file_name == other.file_name
+    }
+
+   
 }
 impl<T> FileHolder<T> {
-    pub fn new(path: PathBuf, content: T, ext: String) -> Self {
-        Self { path, content, ext }
+    pub fn new(path: PathBuf, content: T, ext: String, file_name: String) -> Self {
+        Self { path, content, ext, file_name }
     }
 }
 
@@ -112,16 +121,17 @@ impl Reader {
             .collect::<Vec<_>>();
 
         for path in &dir_data {
+            let file_name = path.to_str().unwrap().split(".").collect::<Vec<_>>()[0];
             let path_ext = path.extension().unwrap().to_str().unwrap();
             match path_ext {
                 "html" => {
                     let file_data: Data<Html> = Reader::reader_out(path.to_path_buf())?.into();
-                    let file_holder = FileHolder::new(path.clone(), file_data, "html".to_owned());
+                    let file_holder = FileHolder::new(path.clone(), file_data, "html".to_owned(), file_name.to_string());
                     data.push(Box::new(file_holder));
                 }
                 "md" => {
                     let file_data: Data<Markdown> = Reader::reader_out(path.to_path_buf())?.into();
-                    let file_holder = FileHolder::new(path.clone(), file_data, "md".to_owned());
+                    let file_holder = FileHolder::new(path.clone(), file_data, "md".to_owned(), file_name.to_string());
                     data.push(Box::new(file_holder));
                 }
                 _ => continue,
@@ -145,6 +155,7 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
                     f_clone.path,
                     Data::new(markdown_parser.convert().into_inner()),
                     "md".to_string(),
+                    f_clone.file_name
                 ));
             }
             None => {
@@ -157,6 +168,7 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
                             f_clone.path,
                             Data::new(file_content),
                             "html".to_string(),
+                            f_clone.file_name
                         ));
                     }
                     None => {
@@ -168,3 +180,5 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
     }
     output
 }
+
+
