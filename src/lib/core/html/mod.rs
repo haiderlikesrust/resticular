@@ -8,6 +8,8 @@ use std::rc::Rc;
 use lol_html::{element, HtmlRewriter, Settings};
 use lol_html::{rewrite_str, RewriteStrSettings};
 
+use crate::error::Error;
+
 use super::config::Config;
 use super::fs::reader::Reader;
 use super::{
@@ -81,39 +83,37 @@ impl HtmlWriter {
     pub fn markdown_replace_writer(
         html_page: &FileHolder<Data<Html>>,
         markdown_page: &FileHolder<Data<Html>>,
-    ) -> FileHolder<Data<Html>> {
-        let mut output = Vec::new();
-        let mut rewritter = HtmlRewriter::new(
-            Settings {
-                element_content_handlers: vec![element!("restic-markdown", |el| {
-                    let config = Config::read_config().unwrap();
-                    let file = el.get_attribute("file").unwrap();
-                    if format!("{}/{}", config.dir, file)
-                        == format!("{}", markdown_page.path.to_str().unwrap())
-                    {
-                        el.append(
-                            &markdown_page.content.into_inner().into_inner(),
-                            lol_html::html_content::ContentType::Html,
-                        );
-                    }
-                    Ok(())
-                })],
-                ..Settings::default()
-            },
-            |c: &[u8]| output.extend_from_slice(c),
-        );
+    ) -> Result<FileHolder<Data<Html>>, Error> {
+        let file_name = get_file_attr_val(&html_page);
+        let config = Config::read_config().unwrap();
+        if format!("{}/{}", config.dir, file_name)
+            == format!("{}", markdown_page.path.to_str().unwrap())
+        {
+            let element_content_handlers = vec![element!("restic-markdown", |el| {
+                el.append(
+                    &markdown_page.content.into_inner().into_inner(),
+                    lol_html::html_content::ContentType::Html,
+                );
+                Ok(())
+            })];
 
-        let data = html_page.content.into_inner();
-        rewritter.write(data.into_inner().as_bytes()).unwrap();
-        println!("Writer");
-        let html_page = html_page.clone();
-        rewritter.end().unwrap();
-        FileHolder::new(
-            html_page.path,
-            Data::new(Html::new(&String::from_utf8(output.clone()).unwrap())),
-            html_page.ext,
-            html_page.file_name,
-        )
+            let output = rewrite_str(
+                &html_page.content.into_inner().into_inner(),
+                RewriteStrSettings {
+                    element_content_handlers,
+                    ..RewriteStrSettings::default()
+                },
+            )
+            .unwrap();
+            Ok(FileHolder::new(
+                html_page.clone().path,
+                Data::new(Html::new(&output)),
+                html_page.clone().ext,
+                html_page.clone().file_name,
+            ))
+        } else {
+            Err(Error::PageCheckError)
+        }
     }
 }
 
@@ -139,47 +139,46 @@ pub fn start_replacing(
     markdown_pages: Vec<FileHolder<Data<Html>>>,
 ) -> Vec<FileHolder<Data<Html>>> {
     let mut pages = vec![];
-    html_pages.iter().for_each(|html_page| {
-        let markdown_page = markdown_pages.iter().next().unwrap();
-        let html_page = HtmlWriter::markdown_replace_writer(html_page, markdown_page);
-        pages.push(FileHolder::new(
-            html_page.path,
-            html_page.content,
-            html_page.ext,
-            html_page.file_name,
-        ));
-        println!("Push");
-    });
 
-    // for html_page in &html_pages {
-    //
-    //     for markdown_page in &markdown_pages {
-    //
-
-    //         let html_page = HtmlWriter::markdown_replace_writer(html_page, markdown_page);
-
-    //         pages.push(FileHolder::new(
-    //             html_page.path,
-    //             html_page.content,
-    //             html_page.ext,
-    //             html_page.file_name,
-    //         ));
-    //     }
-    // }
-    // pages.clone().iter().for_each(|_f| {
-    //     pages.dedup_by(|a, b| {
-    //         if a.file_name == b.file_name  {
-    //             a.content.into_inner().into_inner().len()
-    //                 > b.content.into_inner().into_inner().len() || a.content.into_inner().into_inner().len()
-    //             < b.content.into_inner().into_inner().len()
-    //         } else {
-    //             false
-    //         }
-    //     });
-    //     pages.dedup();
-    // });
+    for html_page in &html_pages {
+        for markdown_page in &markdown_pages {
+            let html_page = HtmlWriter::markdown_replace_writer(html_page, markdown_page);
+            match html_page {
+                Ok(html) => {
+                    pages.push(FileHolder::new(
+                        html.path,
+                        html.content,
+                        html.ext,
+                        html.file_name,
+                    ));
+                }
+                Err(_) => continue,
+            }
+        }
+    }
 
     pages
+}
+
+fn get_file_attr_val(page: &FileHolder<Data<Html>>) -> String {
+    let file = RefCell::new("".to_owned());
+    let element_content_handlers = vec![
+        // Rewrite insecure hyperlinks
+        element!("restic-markdown", |el| {
+            let file_attr = el.get_attribute("file").unwrap();
+            file.replace(file_attr.clone());
+            Ok(())
+        }),
+    ];
+    rewrite_str(
+        &page.content.into_inner().into_inner(),
+        RewriteStrSettings {
+            element_content_handlers,
+            ..RewriteStrSettings::default()
+        },
+    )
+    .unwrap();
+    file.into_inner()
 }
 
 #[cfg(test)]

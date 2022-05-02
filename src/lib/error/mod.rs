@@ -7,6 +7,8 @@ pub enum Error {
     #[error("File I/O: {0}")]
     FileIOError(#[from] std::io::Error),
     #[error("{0}")]
-    HtmlMinifyError(String)
+    HtmlMinifyError(String),
+    #[error("Condition failed")]
+    PageCheckError,
 
 }
