@@ -1,5 +1,4 @@
 use thiserror::Error;
-
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Parser Error: {0}")]
@@ -10,5 +9,6 @@ pub enum Error {
     HtmlMinifyError(String),
     #[error("Condition failed")]
     PageCheckError,
-
+    #[error("Html rewriting error {0}")]
+    HtmlRewriteError(#[from] lol_html::errors::RewritingError)
 }

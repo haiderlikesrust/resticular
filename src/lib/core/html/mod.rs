@@ -1,8 +1,8 @@
 pub mod minify;
 use std::cell::RefCell;
-use std::collections::HashMap;
+
 use std::io::Write;
-use std::ops::Index;
+
 use std::rc::Rc;
 
 use lol_html::{element, HtmlRewriter, Settings};
@@ -11,7 +11,7 @@ use lol_html::{rewrite_str, RewriteStrSettings};
 use crate::error::Error;
 
 use super::config::Config;
-use super::fs::reader::Reader;
+
 use super::{
     fs::{reader::FileHolder, Data, Html},
     IntoInner,
@@ -84,7 +84,7 @@ impl HtmlWriter {
         html_page: &FileHolder<Data<Html>>,
         markdown_page: &FileHolder<Data<Html>>,
     ) -> Result<FileHolder<Data<Html>>, Error> {
-        let file_name = get_file_attr_val(&html_page);
+        let file_name = HtmlWriter::get_file_attr_val(&html_page)?;
         let config = Config::read_config().unwrap();
         if format!("{}/{}", config.dir, file_name)
             == format!("{}", markdown_page.path.to_str().unwrap())
@@ -115,82 +115,95 @@ impl HtmlWriter {
             Err(Error::PageCheckError)
         }
     }
-}
-
-pub fn replace_markdown(contents: Vec<FileHolder<Data<Html>>>) -> Vec<FileHolder<Data<Html>>> {
-    let mut html_pages = vec![];
-    let mut markdown_pages = vec![];
-    for content in contents {
-        match content.ext.as_str() {
-            "md" => {
-                markdown_pages.push(content);
-            }
-            "html" => {
-                html_pages.push(content);
-            }
-            _ => (),
-        }
-    }
-    start_replacing(html_pages, markdown_pages)
-}
-
-pub fn start_replacing(
-    html_pages: Vec<FileHolder<Data<Html>>>,
-    markdown_pages: Vec<FileHolder<Data<Html>>>,
-) -> Vec<FileHolder<Data<Html>>> {
-    let mut pages = vec![];
-
-    for html_page in &html_pages {
-        for markdown_page in &markdown_pages {
-            let html_page = HtmlWriter::markdown_replace_writer(html_page, markdown_page);
-            match html_page {
-                Ok(html) => {
-                    pages.push(FileHolder::new(
-                        html.path,
-                        html.content,
-                        html.ext,
-                        html.file_name,
-                    ));
+    pub fn replace_markdown(contents: Vec<FileHolder<Data<Html>>>) -> Vec<FileHolder<Data<Html>>> {
+        let mut html_pages = vec![];
+        let mut markdown_pages = vec![];
+        for content in contents {
+            match content.ext.as_str() {
+                "md" => {
+                    markdown_pages.push(content);
                 }
-                Err(_) => continue,
+                "html" => {
+                    html_pages.push(content);
+                }
+                _ => (),
             }
         }
+        HtmlWriter::start_replacing(html_pages, markdown_pages)
+    }
+    fn start_replacing(
+        html_pages: Vec<FileHolder<Data<Html>>>,
+        markdown_pages: Vec<FileHolder<Data<Html>>>,
+    ) -> Vec<FileHolder<Data<Html>>> {
+        let mut pages = vec![];
+
+        for html_page in &html_pages {
+            if html_page
+                .clone()
+                .content
+                .into_inner()
+                .into_inner()
+                .contains("restic-markdown")
+            {
+                for markdown_page in &markdown_pages {
+                    let html_page = HtmlWriter::markdown_replace_writer(html_page, markdown_page);
+                    match html_page {
+                        Ok(html) => {
+                            pages.push(FileHolder::new(
+                                html.path,
+                                html.content,
+                                html.ext,
+                                html.file_name,
+                            ));
+                        }
+                        Err(_) => continue,
+                    }
+                }
+            } else {
+                pages.push(html_page.clone());
+            }
+
+            // pages
+            //     .clone()
+            //     .iter()
+            //     .filter(|page| page.file_name == html_page.file_name)
+            //     .for_each(|page| {
+            //         pages.push(page.to_owned());
+            //     })
+        }
+        pages
     }
 
-    pages
-}
-
-fn get_file_attr_val(page: &FileHolder<Data<Html>>) -> String {
-    let file = RefCell::new("".to_owned());
-    let element_content_handlers = vec![
-        // Rewrite insecure hyperlinks
-        element!("restic-markdown", |el| {
-            let file_attr = el.get_attribute("file").unwrap();
-            file.replace(file_attr.clone());
-            Ok(())
-        }),
-    ];
-    rewrite_str(
-        &page.content.into_inner().into_inner(),
-        RewriteStrSettings {
-            element_content_handlers,
-            ..RewriteStrSettings::default()
-        },
-    )
-    .unwrap();
-    file.into_inner()
+    fn get_file_attr_val(page: &FileHolder<Data<Html>>) -> Result<String, Error> {
+        let file = RefCell::new("".to_owned());
+        let element_content_handlers = vec![
+            // Rewrite insecure hyperlinks
+            element!("restic-markdown", |el| {
+                let file_attr = el.get_attribute("file").unwrap();
+                file.replace(file_attr.clone());
+                Ok(())
+            }),
+        ];
+        rewrite_str(
+            &page.content.into_inner().into_inner(),
+            RewriteStrSettings {
+                element_content_handlers,
+                ..RewriteStrSettings::default()
+            },
+        )?;
+        Ok(file.into_inner())
+    }
 }
 
 #[cfg(test)]
 mod test {
 
     use crate::core::{
-        fs::{reader::FileHolder, Data, Html, Markdown},
+        fs::{reader::FileHolder, Data, Html},
         IntoInner,
     };
 
-    use super::{start_replacing, HtmlWriter};
-    use crate::core::markdown::MarkdownParser;
+    use super::HtmlWriter;
 
     #[test]
     pub fn check_tag() {
@@ -253,7 +266,7 @@ mod test {
             ),
         ];
 
-        let replaced = start_replacing(html_pages, markdown_pages);
+        let replaced = HtmlWriter::start_replacing(html_pages, markdown_pages);
         let expected_output = vec![
             FileHolder::new(
                 "source/some.md".into(),

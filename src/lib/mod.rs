@@ -1,9 +1,4 @@
-use crate::core::html::replace_markdown;
-
-use crate::core::IntoInner;
-
 use crate::core::fs::reader::Reader;
-
 use crate::core::config::Config;
 use crate::core::html::HtmlWriter;
 
@@ -35,7 +30,7 @@ pub fn process() -> Result<(), Error> {
             info!("Parsing markdown.");
             let c = HtmlWriter::add_link(f_parser);
             info!("Adding css");
-            let some = replace_markdown(c);
+            let some = HtmlWriter::replace_markdown(c);
             info!("Replacing markdown");
             println!("{:#?}", some)
         }
