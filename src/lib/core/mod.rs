@@ -4,6 +4,7 @@ pub mod fs;
 /// Module for handling markdown.
 pub mod markdown;
 pub mod html;
+pub mod http;
 
 /// This trait basically implements the functionality of returning whats inside the tuple struct.
 /// ```

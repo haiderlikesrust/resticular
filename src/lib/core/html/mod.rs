@@ -1,8 +1,7 @@
 pub mod minify;
+use regex::Regex;
+use scraper::Selector;
 use std::cell::RefCell;
-
-use std::io::Write;
-
 use std::rc::Rc;
 
 use lol_html::{element, HtmlRewriter, Settings};
@@ -86,7 +85,8 @@ impl HtmlWriter {
     ) -> Result<FileHolder<Data<Html>>, Error> {
         let file_name = HtmlWriter::get_file_attr_val(&html_page)?;
         let config = Config::read_config().unwrap();
-        if format!("{}/{}", config.dir, file_name)
+
+        if format!("{}/{}", config.dir, &file_name)
             == format!("{}", markdown_page.path.to_str().unwrap())
         {
             let element_content_handlers = vec![element!("restic-markdown", |el| {
@@ -162,28 +162,19 @@ impl HtmlWriter {
             } else {
                 pages.push(html_page.clone());
             }
-
-            // pages
-            //     .clone()
-            //     .iter()
-            //     .filter(|page| page.file_name == html_page.file_name)
-            //     .for_each(|page| {
-            //         pages.push(page.to_owned());
-            //     })
         }
         pages
     }
 
     fn get_file_attr_val(page: &FileHolder<Data<Html>>) -> Result<String, Error> {
+        let content = &page.content.into_inner().into_inner();
+        let selector = Selector::parse("restic-markdown").unwrap();
         let file = RefCell::new("".to_owned());
-        let element_content_handlers = vec![
-            // Rewrite insecure hyperlinks
-            element!("restic-markdown", |el| {
-                let file_attr = el.get_attribute("file").unwrap();
-                file.replace(file_attr.clone());
-                Ok(())
-            }),
-        ];
+        let element_content_handlers = vec![element!("restic-markdown", |el| {
+            let file_attr = el.get_attribute("file").unwrap();
+            file.replace(file_attr);
+            Ok(())
+        })];
         rewrite_str(
             &page.content.into_inner().into_inner(),
             RewriteStrSettings {
@@ -191,7 +182,8 @@ impl HtmlWriter {
                 ..RewriteStrSettings::default()
             },
         )?;
-        Ok(file.into_inner())
+
+        Ok(file.into_inner().to_owned())
     }
 }
 

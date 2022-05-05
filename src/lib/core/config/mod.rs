@@ -3,7 +3,7 @@ use crate::error::Error;
 use serde_derive::Deserialize;
 use std::env::current_dir;
 use toml::from_str;
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub out_dir: String,
     pub dir: String,

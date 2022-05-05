@@ -3,12 +3,15 @@ edition = "2021"
 name = "resticular"
 version = "0.1.0"
 [dependencies]
+axum = "*"
 downcast-rs = "*"
 lol_html = "*"
+minifier = "*"
 minify-html = "0.8.0"
 mopa = "0.2.2"
 notify = "4.0.17"
 pulldown-cmark = "0.9.1"
+regex = "*"
 serde = "*"
 serde_derive = "*"
 tera = "*"
@@ -16,8 +19,15 @@ thiserror = "*"
 toml = "*"
 tracing = "*"
 tracing-subscriber = "0.2.0"
-
 ws = "*"
+scraper = "0.13.0"
+[dependencies.tokio]
+features = ["full"]
+version = "1.0"
+
+[dependencies.tower-http]
+features = ["fs"]
+version = "*"
 
 [lib]
 name = "resticular"

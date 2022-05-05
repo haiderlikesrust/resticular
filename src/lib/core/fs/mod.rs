@@ -29,6 +29,7 @@ impl Html {
     }
 }
 
+
 pub trait Content: Any + Debug { }
 mopafy!{Content}
 #[derive(Debug, Clone)]

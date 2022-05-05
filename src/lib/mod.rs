@@ -1,8 +1,10 @@
-use crate::core::fs::reader::Reader;
-use crate::core::config::Config;
-use crate::core::html::HtmlWriter;
+use std::path::PrefixComponent;
 
+use crate::core::config::Config;
+use crate::core::fs::reader::{FolderBuilder, Reader};
+use crate::core::html::HtmlWriter;
 use error::Error;
+use tokio::runtime::Runtime;
 
 /// Module on which resticular's functionality depends.
 pub mod core;
@@ -12,9 +14,10 @@ use crate::core::fs::reader::start_convert_and_parse;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 pub fn process() -> Result<(), Error> {
-    let subscriber = FmtSubscriber::builder().with_max_level(Level::TRACE).finish();
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("setting default subscriber failed");
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
     let config = Config::read_config()?;
     match config {
         Config {
@@ -32,7 +35,14 @@ pub fn process() -> Result<(), Error> {
             info!("Adding css");
             let some = HtmlWriter::replace_markdown(c);
             info!("Replacing markdown");
-            println!("{:#?}", some)
+            FolderBuilder::create_folder()?;
+            FolderBuilder::start_creating_files(&some)?;
+
+            let rt = Runtime::new().expect("Error while creating the async runtime");
+            rt.block_on(async move {
+                info!("Development server started on http://localhost:3000");
+                crate::core::http::server().await;
+            })
         }
     }
     Ok(())
