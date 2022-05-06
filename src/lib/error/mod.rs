@@ -1,4 +1,5 @@
 use thiserror::Error;
+use crossbeam_channel::{RecvError, SendError};
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Parser Error: {0}")]

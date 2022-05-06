@@ -1,5 +1,6 @@
 use crate::core::fs::watcher::watch;
 use crate::core::http::ws::WsHandler;
+use crate::core::http::MsgHandler;
 use std::path::PrefixComponent;
 use std::thread;
 
@@ -16,13 +17,13 @@ pub mod prelude;
 use crate::core::fs::reader::start_convert_and_parse;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
+#[derive(Debug, Clone)]
 pub enum EyeKeeper {
     Changed,
     Unchanged,
 }
 
 pub fn process() -> Result<(), Error> {
-    let (sx, rx) = unbounded::<EyeKeeper>();
     let a = thread::spawn(move || -> Result<(), Error> {
         let subscriber = FmtSubscriber::builder()
             .with_max_level(Level::TRACE)
@@ -48,9 +49,9 @@ pub fn process() -> Result<(), Error> {
                 info!("Replacing markdown");
                 FolderBuilder::create_folder()?;
                 FolderBuilder::start_creating_files(&some)?;
-                sx.send(EyeKeeper::Unchanged).unwrap();
-                let rt = Runtime::new().unwrap();
-                rt.spawn(async move {
+                MsgHandler::new().send(EyeKeeper::Unchanged);
+                let rt = Runtime::new().expect("Error");
+                rt.block_on(async move {
                     crate::core::fs::watcher::watch().unwrap();
                     info!("Development server started on http://localhost:3000");
                     crate::core::http::server().await;
@@ -61,10 +62,13 @@ pub fn process() -> Result<(), Error> {
     });
 
     let b = thread::spawn(move || loop {
-        match rx.try_recv() {
-            Ok(EyeKeeper::Changed) => watch().expect("Error out from watcher"),
+        let msg = MsgHandler::new();
+        match msg.receive() {
+            Ok(EyeKeeper::Changed) => {
+                watch().expect("Error out from watcher");
+            }
             Err(_) => continue,
-            _ => continue,
+            Ok(_) => continue,
         }
     });
     a.join();

@@ -289,54 +289,7 @@ impl Reader {
         Ok(data)
     }
 
-    // pub fn read_dir_files(&self) -> Result<Vec<Box<dyn Content>>, Error> {
-    //     let mut data: Vec<Box<dyn Content>> = Vec::new();
-    //     let dir_data = std::fs::read_dir(&self.path)?
-    //         .map(|f| f.unwrap())
-    //         .map(|f| f.path())
-    //         .collect::<Vec<_>>();
-    //     for path in &dir_data {
-    //         let file_name = path.to_str().unwrap().split(".").collect::<Vec<_>>()[0];
-    //         let path_ext = path.extension();
-
-    //         match path_ext {
-    //             Some(ext) => match ext.to_str().unwrap() {
-    //                 "html" => {
-    //                     let file_holder = Reader::find_files(path, file_name, "html")?;
-    //                     data.push(Box::new(file_holder));
-    //                 }
-    //                 "md" => {
-    //                     let file_holder = Reader::find_files(path, file_name, "md")?;
-    //                     data.push(Box::new(file_holder));
-    //                 }
-    //                 _ => continue,
-    //             },
-    //             None => {
-    //                 let dir_data = std::fs::read_dir(&path)?
-    //                     .map(|f| f.unwrap())
-    //                     .map(|f| f.path())
-    //                     .collect::<Vec<_>>();
-    //                 for path in &dir_data {
-    //                     let file_name = path.to_str().unwrap().split(".").collect::<Vec<_>>()[0];
-    //                     let path_ext = path.extension();
-    //                     match path_ext.unwrap().to_str().unwrap() {
-    //                         "html" => {
-    //                             let file_holder = Reader::find_files(path, file_name, "html")?;
-    //                             data.push(Box::new(file_holder));
-    //                         }
-    //                         "md" => {
-    //                             let file_holder = Reader::find_files(path, file_name, "md")?;
-    //                             data.push(Box::new(file_holder));
-    //                         }
-    //                         _ => continue,
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     println!("{:#?}", &data);
-    //     Ok(data)
-    // }
+    
 
     fn find_files(
         path: &PathBuf,
