@@ -1,3 +1,4 @@
 /target
-source
-reticular.toml
+/source
+/dist
+/reticular.toml

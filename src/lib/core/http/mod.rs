@@ -1,5 +1,5 @@
 use std::net::SocketAddr;
-
+pub mod ws;
 use axum::{http::StatusCode, routing::get_service, Router, Server};
 use tower_http::services::ServeDir;
 use tracing::info;

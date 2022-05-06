@@ -5,13 +5,16 @@ version = "0.1.0"
 [dependencies]
 axum = "*"
 downcast-rs = "*"
+hotwatch = "*"
 lol_html = "*"
 minifier = "*"
 minify-html = "0.8.0"
 mopa = "0.2.2"
 notify = "4.0.17"
+parking_lot = "*"
 pulldown-cmark = "0.9.1"
 regex = "*"
+scraper = "0.13.0"
 serde = "*"
 serde_derive = "*"
 tera = "*"
@@ -20,7 +23,8 @@ toml = "*"
 tracing = "*"
 tracing-subscriber = "0.2.0"
 ws = "*"
-scraper = "0.13.0"
+crossbeam-channel = "0.5.4"
+
 [dependencies.tokio]
 features = ["full"]
 version = "1.0"
@@ -32,3 +36,6 @@ version = "*"
 [lib]
 name = "resticular"
 path = "src/lib/mod.rs"
+
+[workspace]
+members = ["resticular-core", "resticular-html"]

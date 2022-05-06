@@ -210,6 +210,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
 
 [[package]]
+name = "crossbeam-channel"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5aaa7bd5fb665c6864b5f963dd9097905c54125909c7aa94c9e18507cdbe6c53"
+dependencies = [
+ "cfg-if 1.0.0",
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "crossbeam-utils"
 version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -517,6 +527,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "hotwatch"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39301670a6f5798b75f36a1b149a379a50df5aa7c71be50f4b41ec6eab445cb8"
+dependencies = [
+ "log",
+ "notify",
 ]
 
 [[package]]
@@ -1371,12 +1391,15 @@ name = "resticular"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "crossbeam-channel",
  "downcast-rs",
+ "hotwatch",
  "lol_html",
  "minifier",
  "minify-html",
  "mopa",
  "notify",
+ "parking_lot",
  "pulldown-cmark",
  "regex",
  "scraper",
@@ -1391,6 +1414,14 @@ dependencies = [
  "tracing-subscriber",
  "ws",
 ]
+
+[[package]]
+name = "resticular-core"
+version = "0.1.0"
+
+[[package]]
+name = "resticular-html"
+version = "0.1.0"
 
 [[package]]
 name = "rustc_version"

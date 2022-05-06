@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use mopa::{Any, mopafy};
 use super::IntoInner;
 pub mod reader;
+pub mod watcher;
 
 /// A generic structure for holding `data`
 #[derive(Debug, Clone, PartialEq)]

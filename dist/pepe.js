@@ -1,1 +1,1 @@
-alert("Hello Gays")
+console.log("")
