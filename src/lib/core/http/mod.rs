@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
 pub mod ws;
-use axum::{http::StatusCode, routing::get_service, Router, Server};
+use axum::{http::StatusCode, routing::get_service, Router};
 use tower_http::services::ServeDir;
-use tracing::info;
+
 use crossbeam_channel::{Sender, Receiver, RecvError, unbounded, SendError};
 
 #[derive(Debug, Clone)]

@@ -1,5 +1,5 @@
 pub mod minify;
-use regex::Regex;
+
 use scraper::Selector;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -167,8 +167,8 @@ impl HtmlWriter {
     }
 
     fn get_file_attr_val(page: &FileHolder<Data<Html>>) -> Result<String, Error> {
-        let content = &page.content.into_inner().into_inner();
-        let selector = Selector::parse("restic-markdown").unwrap();
+        let _content = &page.content.into_inner().into_inner();
+        let _selector = Selector::parse("restic-markdown").unwrap();
         let file = RefCell::new("".to_owned());
         let element_content_handlers = vec![element!("restic-markdown", |el| {
             let file_attr = el.get_attribute("file").unwrap();

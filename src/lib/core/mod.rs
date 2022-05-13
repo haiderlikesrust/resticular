@@ -28,16 +28,18 @@ pub trait IntoInner {
 }
 
 
-pub struct JoinHandler<T, U, V> {
+pub struct JoinHandler<T, U, V, W> {
     pub t1: JoinHandle<T>,
     pub t2: JoinHandle<U>,
-    pub t3: JoinHandle<V>
+    pub t3: JoinHandle<V>,
+    pub t4: JoinHandle<W>
 }
 
-impl<T, U, V> JoinHandler<T, U, V> {
+impl<T, U, V, W> JoinHandler<T, U, V, W> {
     pub fn join(self) {
         self.t1.join();
         self.t2.join();
         self.t3.join();
+        self.t4.join();
     }
 }
