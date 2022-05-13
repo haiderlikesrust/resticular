@@ -1,6 +1,7 @@
 use crate::core::fs::watcher::watch;
 use crate::core::http::ws::WsHandler;
 use crate::core::http::MsgHandler;
+use crate::core::JoinHandler;
 use std::path::PrefixComponent;
 use std::thread;
 
@@ -21,6 +22,11 @@ use tracing_subscriber::FmtSubscriber;
 pub enum EyeKeeper {
     Changed,
     Unchanged,
+}
+
+pub enum ServerEye {
+    Restart,
+    Start,
 }
 
 pub fn process() -> Result<(), Error> {
@@ -52,8 +58,8 @@ pub fn process() -> Result<(), Error> {
                 MsgHandler::new().send(EyeKeeper::Unchanged);
                 let rt = Runtime::new().expect("Error");
                 rt.block_on(async move {
-                    crate::core::fs::watcher::watch().unwrap();
                     info!("Development server started on http://localhost:3000");
+                    watch().unwrap();
                     crate::core::http::server().await;
                 });
                 Ok(())
@@ -62,17 +68,23 @@ pub fn process() -> Result<(), Error> {
     });
 
     let b = thread::spawn(move || loop {
-        let msg = MsgHandler::new();
+        let msg =  MsgHandler::new();
         match msg.receive() {
             Ok(EyeKeeper::Changed) => {
                 watch().expect("Error out from watcher");
             }
-            Err(_) => continue,
+            Err(_) => break,
             Ok(_) => continue,
         }
     });
-    a.join();
-    b.join();
+
+    let c = thread::spawn(|| {
+        println!("Hello World")
+    });
+
+    let papa_handler = JoinHandler { t1: a, t2: b, t3: c};
+
+    papa_handler.join();
 
     Ok(())
 }

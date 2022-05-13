@@ -6,7 +6,7 @@ use hotwatch::{
 };
 
 use crate::{
-    core::{config::Config, http::MsgHandler},
+    core::{config::Config, http::{MsgHandler, ws::WsHandler}},
     error::Error,
 };
 
@@ -17,10 +17,12 @@ pub fn watch() -> Result<(), Error> {
     hotwatch
         .watch(config.dir, |event: Event| {
             let msg = MsgHandler::new();
+            let ws = WsHandler::new("http://0.0.0.0:4200/");
             match event {
                 Event::Create(e) => {
                     println!("New: {}", e.to_str().unwrap());
                     msg.send(crate::EyeKeeper::Changed);
+                    ws.out();
                     Flow::Continue
                 }
                 Event::Write(e) => {

@@ -1,21 +1,22 @@
-use ws::listen;
+use ws::{connect, CloseCode};
 pub struct WsHandler {
-    pub to: String
+    pub to: String,
 }
-
 
 impl WsHandler {
     pub fn new(to: &str) -> Self {
-        Self {
-            to: to.to_string()
-        }
+        Self { to: to.to_string() }
     }
 
-    pub fn out(&self)  {
-        listen(&self.to, |s| {
+    pub fn out(self) {
+        connect("http://0.0.0.0:4200", |out| {
+            out.send("Hello WebSocket").unwrap();
+
             move |msg| {
-                s.send(msg)
+                println!("Got message: {}", msg);
+                out.close(CloseCode::Normal)
             }
-        }).unwrap();
+        })
+        .unwrap()
     }
 }
