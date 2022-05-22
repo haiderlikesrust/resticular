@@ -1,3 +1,19 @@
 out_dir = "dist"
 dir = "source"
 lazy_images = true
+
+[[routes]]
+to = ""
+file_name = "index.html"
+
+[[routes]]
+to = "blog/post/how-to-test"
+file_name = "test.html"
+[[routes]]
+to = "blog/post/how-i-got-married"
+file_name = "blog-post.html"
+[[routes]]
+
+file_name = "blog.html"
+
+to = "blog"

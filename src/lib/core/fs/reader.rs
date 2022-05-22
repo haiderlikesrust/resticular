@@ -113,10 +113,10 @@ impl FolderBuilder {
     pub fn start_creating_files(pages: &Vec<FileHolder<Data<Html>>>) -> Result<(), Error> {
         let config = Config::read_config()?;
         for page in pages {
-            let file_name = page.path.to_str().unwrap().split("/").collect::<Vec<_>>()[1];
-            info!("Creating {}.", &file_name);
+            
+            info!("Creating {}.", &page.file_name);
             Writer::write(
-                PathBuf::from(format!("{}/{}", config.out_dir, file_name)),
+                PathBuf::from(format!("{}/{}", config.out_dir, page.file_name)),
                 page.content.clone(),
             )?;
         }
@@ -289,8 +289,6 @@ impl Reader {
         Ok(data)
     }
 
-    
-
     fn find_files(
         path: &PathBuf,
         file_name: &str,
@@ -344,6 +342,59 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
         }
     }
     output
+}
+
+pub fn read(path: &str) -> Result<Vec<Box<dyn Content>>, Error> {
+    let path = PathBuf::from(path);
+    let mut data = Vec::new();
+    read_push(&path, &mut data);
+    Ok(data)
+}
+
+fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Error> {
+    let dir_data = std::fs::read_dir(&path)?
+        .map(|f| f.unwrap())
+        .map(|f| f.path())
+        .collect::<Vec<_>>();
+
+    for path in &dir_data {
+        println!("{}", &path.to_str().unwrap());
+        match path.is_dir() {
+            false => {
+                let file_name = path.file_name().unwrap().to_str().unwrap();
+                let path_ext = path.extension().unwrap().to_str().unwrap();
+                match path_ext {
+                    "html" => {
+                        let file_data: Data<Html> = Reader::reader_out(path.to_path_buf())?.into();
+                        let file_holder = FileHolder::new(
+                            path.clone(),
+                            file_data,
+                            "html".to_owned(),
+                            file_name.to_string(),
+                        );
+                        data.push(Box::new(file_holder));
+                    }
+                    "md" => {
+                        let file_data: Data<Markdown> =
+                            Reader::reader_out(path.to_path_buf())?.into();
+                        let file_holder = FileHolder::new(
+                            path.clone(),
+                            file_data,
+                            "md".to_owned(),
+                            file_name.to_string(),
+                        );
+                        data.push(Box::new(file_holder));
+                    }
+                    _ => continue,
+                }
+            }
+            true => {
+                read_push(&path, data).unwrap();
+            }
+        }
+    }
+
+    Ok(())
 }
 
 impl IntoInner for String {

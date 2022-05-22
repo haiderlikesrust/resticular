@@ -1,8 +1,10 @@
 use std::fmt::Debug;
-
+use fs_extra::dir::get_size;
 
 use mopa::{Any, mopafy};
-use super::IntoInner;
+use crate::error::Error;
+
+use super::{IntoInner, config::Config};
 pub mod reader;
 pub mod watcher;
 
@@ -41,6 +43,12 @@ impl Markdown {
     pub fn new(d: &str) -> Self {
         Self(d.to_string())
     }
+}
+
+pub fn build_size() -> Result<f64, Error> {
+    let config = Config::read_config()?;
+    let size = get_size(config.out_dir)?;
+    Ok(((size / 1024) / 1000) as f64)
 }
 impl From<String> for Markdown {
     fn from(d: String) -> Self {

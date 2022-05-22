@@ -6,18 +6,45 @@ use crate::core::JoinHandler;
 use std::thread;
 
 use crate::core::config::Config;
-use crate::core::fs::reader::{FolderBuilder, Reader};
+use crate::core::fs::reader::{FolderBuilder, Reader, read};
 use crate::core::html::HtmlWriter;
 
 use error::Error;
 use tokio::runtime::Runtime;
+pub mod cli;
 /// Module on which resticular's functionality depends.
 pub mod core;
 pub mod error;
 pub mod prelude;
+#[cfg(test)]
+pub mod tests;
 use crate::core::fs::reader::start_convert_and_parse;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
+
+#[macro_export]
+macro_rules! handle_thread_error_with_error {
+    ($func: expr, $error: expr) => {
+        match $func {
+            Ok(_) => "Passed".to_owned(),
+            Err(_) => {
+                panic!("Error occured in a thread: {}", $error)
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! handle_thread_error {
+    ($func: expr) => {
+        match $func {
+            Ok(_) => "Passed".to_owned(),
+            Err(a) => {
+                panic!("Error occured in a thread: {}", a)
+            }
+        }
+    };
+}
 
 #[derive(Debug, Clone)]
 pub enum EyeKeeper {
@@ -31,9 +58,8 @@ pub enum ProcessIndicator {
 }
 
 fn sub_process(dir: &str) -> Result<(), Error> {
-    let reader = Reader::new(dir.into());
     info!("Creating file reader..");
-    let f = reader.read_dir_files()?;
+    let f = read(dir)?;
     info!("Reading {}", dir);
     let f_parser = start_convert_and_parse(f);
     info!("Parsing markdown.");
@@ -63,6 +89,7 @@ pub fn process() -> Result<(), Error> {
                 out_dir: _,
                 dir,
                 lazy_images: _,
+                routes: _
             } => {
                 sub_process(&dir)?;
                 let eye_msg = MsgHandler::new();

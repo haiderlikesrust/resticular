@@ -13,5 +13,15 @@ pub enum Error {
     #[error("Html rewriting error {0}")]
     HtmlRewriteError(#[from] lol_html::errors::RewritingError),
     #[error("{0} failed while doing {1}")]
-    ThreadFailed(String, String)
+    ThreadFailed(String, String),
+    #[error("{0}")]
+    FileSystemWatchError(#[from] hotwatch::Error),
+    #[error("Error while sending message from a thread.")]
+    MsgError,
+    #[error("Error while receiving message from a thread.")]
+    RecvError,
+    #[error("Fs Error: {0}")]
+    FsError(#[from] fs_extra::error::Error),
+    #[error("Config file error: {0}")]
+    ConfigFileError(String)
 }
