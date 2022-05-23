@@ -1,6 +1,7 @@
 pub struct Commander;
 use std::env::current_dir;
 use std::fs;
+use colored::Colorize;
 
 use crate::core::config::CONFIG_PATH;
 use crate::core::fs::reader::{FileContent, Reader, Writer};
@@ -15,15 +16,16 @@ impl Commander {
             .append(true)
             .open(format!("{}/{}", current_dir()?.to_str().unwrap(), "resticular.toml"))?;
         let new_route = format!(
-            "\n
-[[routes]]\n
-file_name = \"{}\"\n
+"\n
+[[routes]]
+file_name = \"{}\"
 to = \"{}\"\n
             ",
             file_name, to
-        ).trim().to_owned();
+        ).to_owned();
 
         write!(file, "{}", new_route)?;
+        println!("Created {} route for {} file", to.bold().white(), file_name.bold().green());
         Ok(())
     }
 }

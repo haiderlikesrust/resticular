@@ -41,5 +41,3 @@ version = "*"
 name = "resticular"
 path = "src/lib/mod.rs"
 
-[workspace]
-members = ["resticular-core", "resticular-html"]

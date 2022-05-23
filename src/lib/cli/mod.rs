@@ -1,6 +1,6 @@
 use std::fs;
 
-use crate::{core::fs::build_size, error::Error};
+use crate::{core::fs::build_size, error::Error, process};
 use clap::{arg, command, ArgMatches, Command};
 use colored::*;
 use std::io::Write;
@@ -38,9 +38,10 @@ impl Cli {
                         )
                         .arg(arg!(--name <NAME> "Name of the file wirh extension")),
                 ),
-            );
+            )
+            .subcommand(Command::new("start").about("Starts building and starts the server"));
         let matches = app.get_matches();
-        self.figure_out_matches(&matches);
+        self.figure_out_matches(&matches)?;
         Ok(())
     }
 
@@ -60,11 +61,13 @@ impl Cli {
                     Some(("route", matches)) => {
                         let to = matches.value_of("to").unwrap();
                         let file_name = matches.value_of("name").unwrap();
-                        println!("{}--{}", &file_name, &to);
                         Commander::new_route(file_name.to_owned(), to.to_owned())?;
                     }
                     _ => (),
                 }
+            }
+            Some(("start", _)) => {
+                process()?;
             }
 
             _ => (),

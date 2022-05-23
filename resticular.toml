@@ -6,14 +6,11 @@ lazy_images = true
 to = ""
 file_name = "index.html"
 
-[[routes]]
-to = "blog/post/how-to-test"
-file_name = "test.html"
-[[routes]]
-to = "blog/post/how-i-got-married"
-file_name = "blog-post.html"
-[[routes]]
 
-file_name = "blog.html"
+        
 
-to = "blog"
+[[routes]]
+file_name = "choc.html"
+to = "blog/why-i-like-chocolate"
+
+            
