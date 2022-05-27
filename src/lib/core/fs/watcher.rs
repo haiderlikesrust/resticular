@@ -11,7 +11,7 @@ use crate::{
         config::Config,
         http::{ws::WsHandler, MsgHandler},
     },
-    handle_thread_error, handle_thread_error_with_error, sub_process, ProcessIndicator,
+    handle_thread_error, handle_thread_error_with_error, sub_process,
 };
 
 pub fn watch() -> Result<(), Error> {

@@ -37,7 +37,7 @@ impl HtmlWriter {
             let cc = c.content.into_inner();
             let cc_clone = cc.clone().into_inner();
             rewriter.write(cc_clone.as_bytes()).unwrap();
-            rewriter.end();
+            rewriter.end().unwrap();
             vec_of_outputs.push(FileHolder::new(
                 c.path,
                 Data::new(Html::new(&String::from_utf8(output).unwrap())),

@@ -56,6 +56,6 @@ mod test {
 
     #[test]
     fn check_file() {
-        let c = Config::read_config().unwrap();
+        let _c = Config::read_config().unwrap();
     }
 }

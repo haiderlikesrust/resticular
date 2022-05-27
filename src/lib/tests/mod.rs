@@ -2,7 +2,7 @@ use crate::handle_thread_error_with_error;
 use thiserror;
 #[test]
 fn check_handle_error() {
-    let a = handle_thread_error_with_error!(test_func(), Error::FooError);
+    let _a = handle_thread_error_with_error!(test_func(), Error::FooError);
     
 }
 

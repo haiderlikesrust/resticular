@@ -1,22 +1,14 @@
-use std::{cell::RefCell, net::SocketAddr, sync::Arc, thread};
+use std::{cell::RefCell, net::SocketAddr};
 pub mod routes;
 pub mod ws;
-use axum::{
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{get, get_service},
-    Router,
-};
+use axum::{http::StatusCode, routing::get_service, Router};
 use crossbeam_channel::{unbounded, Receiver, RecvError, SendError, Sender};
-use parking_lot::Mutex;
-use std::collections::HashMap;
-use tower_http::services::{ServeDir, ServeFile};
+
+use tower_http::services::ServeFile;
 
 use crate::error::Error;
 
-use self::routes::RouteInfo;
-
-use super::config::{Config, Route};
+use super::config::Config;
 #[derive(Debug, Clone)]
 pub struct MsgHandler<T> {
     pub sender: Sender<T>,

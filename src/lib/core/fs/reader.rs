@@ -253,7 +253,7 @@ impl Reader {
         reader.read_to_string(&mut buffer)?;
         Ok(Data::new(FileContent::new(buffer)))
     }
-    pub fn read_dir_files(&self) -> Result<Vec<Box<dyn Content>>, Error> {
+    pub  fn read_dir_files(&self) -> Result<Vec<Box<dyn Content>>, Error> {
         let mut data: Vec<Box<dyn Content>> = Vec::new();
         let dir_data = std::fs::read_dir(&self.path)?
             .map(|f| f.unwrap())
@@ -347,7 +347,7 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
 pub fn read(path: &str) -> Result<Vec<Box<dyn Content>>, Error> {
     let path = PathBuf::from(path);
     let mut data = Vec::new();
-    read_push(&path, &mut data);
+    read_push(&path, &mut data)?;
     Ok(data)
 }
 

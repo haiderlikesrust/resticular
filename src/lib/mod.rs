@@ -6,7 +6,7 @@ use crate::core::JoinHandler;
 use std::thread;
 
 use crate::core::config::Config;
-use crate::core::fs::reader::{FolderBuilder, Reader, read};
+use crate::core::fs::reader::{read, FolderBuilder};
 use crate::core::html::HtmlWriter;
 
 use error::Error;
@@ -89,11 +89,14 @@ pub fn process() -> Result<(), Error> {
                 out_dir: _,
                 dir,
                 lazy_images: _,
-                routes: _
+                routes: _,
             } => {
                 sub_process(&dir)?;
                 let eye_msg = MsgHandler::new();
-                eye_msg.send(EyeKeeper::Unchanged);
+                handle_thread_error_with_error!(
+                    eye_msg.send(EyeKeeper::Unchanged),
+                    Error::MsgError
+                );
                 let msg = MsgHandler::new();
                 loop {
                     match msg.receive() {
@@ -115,8 +118,8 @@ pub fn process() -> Result<(), Error> {
 
     let t_eye_keeper = thread::spawn(move || -> Result<(), Error> {
         loop {
-            let msg = MsgHandler::new();
-            match msg.receive() {
+            let msg = MsgHandler::new().receive();
+            match msg {
                 Ok(EyeKeeper::Changed) => {
                     println!("Changed");
                     // watch()?;
@@ -126,8 +129,8 @@ pub fn process() -> Result<(), Error> {
                     "EYE_KEEPER_THREAD".to_owned(),
                     "keeping an eye and sending changes status".to_owned(),
                 )),
-                Ok(a) => {
-                    println!("{:?}", a);
+                Ok(_) => {
+                    // println!("{:?}", a);
                     continue;
                 }
             };
@@ -148,7 +151,10 @@ pub fn process() -> Result<(), Error> {
         let rt = Runtime::new().expect("Error");
         rt.block_on(async move {
             info!("Development server started on http://localhost:3000");
-            crate::core::http::server().await;
+            match crate::core::http::server().await {
+                Ok(_) => (),
+                Err(er) => panic!("Server thread panicked: {}", er),
+            }
         });
         Ok(())
     });

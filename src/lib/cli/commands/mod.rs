@@ -3,9 +3,9 @@ use std::env::current_dir;
 use std::fs;
 use colored::Colorize;
 
-use crate::core::config::CONFIG_PATH;
-use crate::core::fs::reader::{FileContent, Reader, Writer};
-use crate::core::fs::Data;
+
+
+
 use crate::error::Error;
 use std::io::Write;
 
