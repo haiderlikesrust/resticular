@@ -66,6 +66,7 @@ fn sub_process(dir: &str) -> Result<(), Error> {
     let c = HtmlWriter::add_link(f_parser);
     info!("Adding css");
     let some = HtmlWriter::replace_markdown(c);
+    println!("{:#?}", &some);
     info!("Replacing markdown");
     FolderBuilder::create_folder()?;
     FolderBuilder::start_creating_files(&some)?;
@@ -74,8 +75,13 @@ fn sub_process(dir: &str) -> Result<(), Error> {
 
 pub fn process() -> Result<(), Error> {
     let conf = Config::read_config();
-    if let Err(e) = conf {
-        return Err(e);
+    if let Err(_) = conf {
+        return Err(Error::ConfigFileError(
+            error::ConfigError::ConfigFileNotFound(
+                "Config file not found. Make sure you have a file named `resticular.toml`"
+                    .to_string(),
+            ),
+        ));
     }
     let t_process = thread::spawn(move || -> Result<(), Error> {
         let subscriber = FmtSubscriber::builder()

@@ -1,5 +1,5 @@
 use thiserror::Error;
-
+use toml::de::Error as DeError;
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Parser Error: {0}")]
@@ -23,5 +23,15 @@ pub enum Error {
     #[error("Fs Error: {0}")]
     FsError(#[from] fs_extra::error::Error),
     #[error("Config file error: {0}")]
-    ConfigFileError(String)
+    ConfigFileError(#[from] ConfigError)
+}
+
+#[derive(Debug, Error)]
+pub enum ConfigError {
+    #[error("{0}")]
+    ConfigFileNotFound(String),
+    #[error("Required Field: {0}")]
+    ConfigFileRequiredField(#[from] DeError),
+    #[error("Parse Error: {0}")]
+    ConfigFileParseError(String)
 }

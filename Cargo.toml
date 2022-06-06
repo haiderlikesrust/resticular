@@ -1,9 +1,12 @@
 [package]
+description = "Blazingly Fast Static Site Generator"
+readme = "README.md"
 edition = "2021"
 name = "resticular"
 version = "0.1.0"
+
 [dependencies]
-axum = "*"
+axum = "0.4"
 downcast-rs = "*"
 hotwatch = "*"
 lol_html = "*"
@@ -13,7 +16,6 @@ mopa = "0.2.2"
 notify = "4.0.17"
 parking_lot = "*"
 pulldown-cmark = "0.9.1"
-regex = "*"
 scraper = "0.13.0"
 serde = "*"
 serde_derive = "*"
@@ -27,7 +29,7 @@ crossbeam-channel = "0.5.4"
 clap = "3.1.18"
 colored = "2.0.0"
 fs_extra = "1.2.0"
-scan_dir = "0.3.3"
+
 
 [dependencies.tokio]
 features = ["full"]
@@ -40,4 +42,3 @@ version = "*"
 [lib]
 name = "resticular"
 path = "src/lib/mod.rs"
-

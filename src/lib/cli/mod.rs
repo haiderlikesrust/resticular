@@ -1,9 +1,10 @@
-
-
-use crate::{core::fs::build_size, error::Error, process};
+use crate::{
+    core::{config::Config, fs::build_size},
+    error::Error,
+    process, sub_process,
+};
 use clap::{arg, ArgMatches, Command};
 use colored::*;
-
 
 use self::commands::Commander;
 #[macro_export]
@@ -49,11 +50,8 @@ impl Cli {
         let subcommands = matches.subcommand();
         match subcommands {
             Some(("build", _)) => {
-                let size = build_size()?;
-                alert_cli!(format!("Size: {} MiB", size), red)
-            }
-            Some(("serve", _)) => {
-                alert_cli!("Hello people!", green)
+                let config = Config::read_config()?;
+                sub_process(&config.dir)?
             }
             Some(("add", arg)) => {
                 let sub_commands = arg.subcommand();

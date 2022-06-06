@@ -22,7 +22,7 @@ file_name = \"{}\"
 to = \"{}\"\n
             ",
             file_name, to
-        ).to_owned();
+        );
 
         write!(file, "{}", new_route)?;
         println!("Created {} route for {} file", to.bold().white(), file_name.bold().green());

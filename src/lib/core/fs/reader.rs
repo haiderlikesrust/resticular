@@ -7,6 +7,7 @@ use minifier::css;
 use minifier::js;
 use std::fmt::Debug;
 use std::fs::create_dir;
+use std::fs::create_dir_all;
 use std::fs::File;
 use std::fs::{read_dir, remove_file};
 use std::io::{BufReader, BufWriter, Read, Write};
@@ -113,7 +114,11 @@ impl FolderBuilder {
     pub fn start_creating_files(pages: &Vec<FileHolder<Data<Html>>>) -> Result<(), Error> {
         let config = Config::read_config()?;
         for page in pages {
-            
+            let path = page
+                .path
+                .to_str()
+                .unwrap()
+                .replace(&config.dir, &config.out_dir);
             info!("Creating {}.", &page.file_name);
             Writer::write(
                 PathBuf::from(format!("{}/{}", config.out_dir, page.file_name)),
@@ -127,7 +132,7 @@ impl FolderBuilder {
                 .path
                 .to_str()
                 .unwrap()
-                .split("/")
+                .split('/')
                 .collect::<Vec<_>>()[1];
             info!("Creating {}.", &file_name);
             Writer::write(
@@ -141,7 +146,7 @@ impl FolderBuilder {
                 .path
                 .to_str()
                 .unwrap()
-                .split("/")
+                .split('/')
                 .collect::<Vec<_>>()[1];
             info!("Creating {}.", &file_name);
             Writer::write(
@@ -179,7 +184,7 @@ impl Reader {
     pub fn new(path: PathBuf) -> Self {
         Self { path }
     }
-
+    
     pub fn read_stylesheets(&self) -> Result<Vec<FileHolder<Data<String>>>, Error> {
         let mut data = vec![];
         let dir_data = std::fs::read_dir(&self.path)?
@@ -188,7 +193,7 @@ impl Reader {
             .collect::<Vec<_>>();
 
         for path in dir_data {
-            let file_name = path.to_str().unwrap().split(".").collect::<Vec<_>>()[0];
+            let file_name = path.to_str().unwrap().split('.').collect::<Vec<_>>()[0];
             let path_ext = path.extension();
             match path_ext {
                 Some(p) => {
@@ -218,7 +223,7 @@ impl Reader {
             .collect::<Vec<_>>();
 
         for path in dir_data {
-            let file_name = path.to_str().unwrap().split(".").collect::<Vec<_>>()[0];
+            let file_name = path.to_str().unwrap().split('.').collect::<Vec<_>>()[0];
             let path_ext = path.extension();
             match path_ext {
                 Some(p) => {
@@ -253,14 +258,14 @@ impl Reader {
         reader.read_to_string(&mut buffer)?;
         Ok(Data::new(FileContent::new(buffer)))
     }
-    pub  fn read_dir_files(&self) -> Result<Vec<Box<dyn Content>>, Error> {
+    pub fn read_dir_files(&self) -> Result<Vec<Box<dyn Content>>, Error> {
         let mut data: Vec<Box<dyn Content>> = Vec::new();
         let dir_data = std::fs::read_dir(&self.path)?
             .map(|f| f.unwrap())
             .map(|f| f.path())
             .collect::<Vec<_>>();
         for path in &dir_data {
-            let file_name = path.to_str().unwrap().split(".").collect::<Vec<_>>()[0];
+            let file_name = path.to_str().unwrap().split('.').collect::<Vec<_>>()[0];
             let path_ext = path.extension().unwrap().to_str().unwrap();
             match path_ext {
                 "html" => {
@@ -351,6 +356,8 @@ pub fn read(path: &str) -> Result<Vec<Box<dyn Content>>, Error> {
     Ok(data)
 }
 
+
+
 fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Error> {
     let dir_data = std::fs::read_dir(&path)?
         .map(|f| f.unwrap())
@@ -389,7 +396,7 @@ fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Err
                 }
             }
             true => {
-                read_push(&path, data).unwrap();
+                read_push(path, data).unwrap();
             }
         }
     }

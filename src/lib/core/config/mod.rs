@@ -1,9 +1,9 @@
 use super::{fs::reader::Reader, IntoInner};
-use crate::error::Error;
+use crate::error::{self, ConfigError, Error};
 use serde_derive::Deserialize;
 use std::env::current_dir;
 use toml::from_str;
-pub const CONFIG_PATH: &'static str = "resticular.toml";
+pub const CONFIG_PATH: &str = "resticular.toml";
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
@@ -24,20 +24,24 @@ impl Config {
         let path = format!("{}/resticular.toml", current_dir.to_str().unwrap());
         let config_file = Reader::new(path.into());
         let config_content = config_file.reader()?.into_inner().into_inner();
-        let config: Config = from_str(&config_content).unwrap();
+        let config = Config::parse(&config_content)?;
         Ok(config)
+    }
+    fn parse(config_content: &str) -> Result<Config, ConfigError> {
+        let a: Config = from_str(&config_content)?;
+        Ok(a)
     }
 
     pub fn fix(mut self) -> Result<Self, Error> {
         for route in &mut self.routes {
-            if route.file_name.starts_with("/")
-                || route.file_name.ends_with("/")
+            if route.file_name.starts_with('/')
+                || route.file_name.ends_with('/')
                 || !route.file_name.ends_with(".html")
             {
                 return Err(Error::ConfigFileError(
-                    r"The field `file_name` in your `resticular.toml` either starts with `/` or ends `/` or does not end with `.html`. "
-                    .to_string()
-                ));
+                    error::ConfigError::ConfigFileParseError(r"The field `file_name` in your `resticular.toml` either starts with `/` or ends `/` or does not end with `.html`. "
+                    .to_string()))
+                );
             }
             route.file_name = format!("{}/{}", self.out_dir, route.file_name);
         }

@@ -12,7 +12,7 @@ impl HtmlMinifier {
         let mut cfg = Cfg::new();
         cfg.minify_js = true;
         cfg.minify_css = true;
-        let minified = minify(&content.as_bytes(), &cfg);
+        let minified = minify(content.as_bytes(), &cfg);
         Html::new(&String::from_utf8(minified).unwrap()) 
 
     }

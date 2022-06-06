@@ -83,11 +83,11 @@ impl HtmlWriter {
         html_page: &FileHolder<Data<Html>>,
         markdown_page: &FileHolder<Data<Html>>,
     ) -> Result<FileHolder<Data<Html>>, Error> {
-        let file_name = HtmlWriter::get_file_attr_val(&html_page)?;
+        let file_name = HtmlWriter::get_file_attr_val(html_page)?;
         let config = Config::read_config().unwrap();
 
         if format!("{}/{}", config.dir, &file_name)
-            == format!("{}", markdown_page.path.to_str().unwrap())
+            == *markdown_page.path.to_str().unwrap()
         {
             let element_content_handlers = vec![element!("restic-markdown", |el| {
                 el.append(
@@ -183,7 +183,7 @@ impl HtmlWriter {
             },
         )?;
 
-        Ok(file.into_inner().to_owned())
+        Ok(file.into_inner())
     }
 }
 
