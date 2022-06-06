@@ -39,7 +39,7 @@ version = "1.0"
 
 [dependencies.tower-http]
 features = ["fs"]
-version = "*"
+version = "0.3.4"
 
 [lib]
 name = "resticular"
