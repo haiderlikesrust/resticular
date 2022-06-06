@@ -3,7 +3,7 @@ description = "Blazingly Fast Static Site Generator"
 readme = "README.md"
 edition = "2021"
 name = "resticular"
-version = "0.1.0"
+version = "0.1.1"
 repository = "https://github.com/Haider-Ali-Dev/resticular"
 license = "MIT OR Apache-2.0"
 

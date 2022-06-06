@@ -66,7 +66,6 @@ fn sub_process(dir: &str) -> Result<(), Error> {
     let c = HtmlWriter::add_link(f_parser);
     info!("Adding css");
     let some = HtmlWriter::replace_markdown(c);
-    println!("{:#?}", &some);
     info!("Replacing markdown");
     FolderBuilder::create_folder()?;
     FolderBuilder::start_creating_files(&some)?;

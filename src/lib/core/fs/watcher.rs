@@ -34,14 +34,13 @@ pub fn watch() -> Result<(), Error> {
                 Flow::Continue
             }
             Event::Write(e) => {
-                println!("changed: {}", e.to_str().unwrap());
+                println!("Changed: {}", e.to_str().unwrap());
 
                 handle_thread_error_with_error!(
                     msg.send(crate::EyeKeeper::Changed),
                     Error::MsgError
                 );
                 handle_thread_error!(sub_process(&conf.dir));
-                println!("BOOM");
                 Flow::Continue
             }
             _ => Flow::Continue,
