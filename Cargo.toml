@@ -4,6 +4,7 @@ readme = "README.md"
 edition = "2021"
 name = "resticular"
 version = "0.1.0"
+repository = "https://github.com/Haider-Ali-Dev/resticular"
 
 [dependencies]
 axum = "0.4"
