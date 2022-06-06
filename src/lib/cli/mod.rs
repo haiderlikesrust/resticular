@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     process, sub_process,
 };
-use clap::{arg, ArgMatches, Command};
+use clap::{arg, ArgMatches, Command, AppSettings};
 use colored::*;
 
 use self::commands::Commander;
@@ -25,6 +25,7 @@ impl Cli {
         let app = Command::new("resticular")
             .about("Easy and flexible SSG.")
             .author("Haider Ali")
+            .arg_required_else_help(true)
             .subcommand(Command::new("build").about("Builds the source directory."))
             .subcommand(
                 Command::new("serve").about("Builds the source folder and runs the dev server."),
