@@ -135,9 +135,11 @@ impl FolderBuilder {
                 .split('/')
                 .collect::<Vec<_>>()[1];
             info!("Creating {}.", &file_name);
+            let content = stylesheet.content.into_inner();
+            // let content = css::minify(&stylesheet.content.file_content).unwrap();
             Writer::write(
                 PathBuf::from(format!("{}/{}", config.out_dir, file_name)),
-                Data::new(css::minify(&stylesheet.content.into_inner()).unwrap()),
+                Data::new(content),
             )?;
         }
         let script_files = Reader::new(config.clone().dir.into()).read_script_files()?;
@@ -149,9 +151,12 @@ impl FolderBuilder {
                 .split('/')
                 .collect::<Vec<_>>()[1];
             info!("Creating {}.", &file_name);
+            // let content = js::minify(&script_file.content.file_content);
+            let content = script_file.content.into_inner();
+
             Writer::write(
                 PathBuf::from(format!("{}/{}", config.out_dir, file_name)),
-                Data::new(js::minify(&script_file.content.file_content)),
+                Data::new(content.to_string()),
             )?;
         }
 
