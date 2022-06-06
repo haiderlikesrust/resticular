@@ -5,6 +5,7 @@ edition = "2021"
 name = "resticular"
 version = "0.1.0"
 repository = "https://github.com/Haider-Ali-Dev/resticular"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 axum = "0.4"
