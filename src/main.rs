@@ -1,8 +1,7 @@
-use resticular::cli::Cli;
+use resticular::cli;
 
 use resticular::error::Error;
 
 fn main() -> Result<(), Error> {
-    Cli.start()?;
-    Ok(())
+    cli::start()
 }
