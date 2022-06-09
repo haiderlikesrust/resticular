@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     process, sub_process,
 };
-use clap::{arg, ArgMatches, Command, AppSettings};
+use clap::{AppSettings, Parser, Subcommand};
 use colored::*;
 
 use self::commands::Commander;
@@ -13,65 +13,57 @@ macro_rules! alert_cli {
         println!("{}", $msg.$color_or_font())
     };
 }
-pub struct Cli;
 pub mod commands;
 
-impl Cli {
-    pub fn start(self) -> Result<(), Error> {
-        self.cmd()
-    }
+/// Easy and flexible SSG
+#[derive(Parser)]
+#[clap(global_setting = AppSettings::DeriveDisplayOrder)]
+#[clap(author = "Haider Ali")]
+enum Cli {
+    /// Builds the source dir
+    Build,
 
-    fn cmd(self) -> Result<(), Error> {
-        let app = Command::new("resticular")
-            .about("Easy and flexible SSG.")
-            .author("Haider Ali")
-            .arg_required_else_help(true)
-            .subcommand(Command::new("build").about("Builds the source directory."))
-            .subcommand(
-                Command::new("serve").about("Builds the source folder and runs the dev server."),
-            )
-            .subcommand(
-                Command::new("add").about("Adds something.").subcommand(
-                    Command::new("route")
-                        .about("Adds a route")
-                        .arg(
-                            arg!(--to [TO] "The path of the route on the browser.")
-                                .default_value(""),
-                        )
-                        .arg(arg!(--name <NAME> "Name of the file wirh extension")),
-                ),
-            )
-            .subcommand(Command::new("start").about("Starts building and starts the server"));
-        let matches = app.get_matches();
-        self.figure_out_matches(&matches)?;
-        Ok(())
-    }
+    /// Builds the source dir and runs the dev server
+    Serve,
 
-    fn figure_out_matches(self, matches: &ArgMatches) -> Result<(), Error> {
-        let subcommands = matches.subcommand();
-        match subcommands {
-            Some(("build", _)) => {
-                let config = Config::read_config()?;
-                sub_process(&config.dir)?
-            }
-            Some(("add", arg)) => {
-                let sub_commands = arg.subcommand();
-                match sub_commands {
-                    Some(("route", matches)) => {
-                        let to = matches.value_of("to").unwrap();
-                        let file_name = matches.value_of("name").unwrap();
-                        Commander::new_route(file_name.to_owned(), to.to_owned())?;
-                    }
-                    _ => (),
-                }
-            }
-            Some(("start", _)) => {
-                process()?;
-            }
+    /// Builds the source dir and starts the server
+    Start,
 
-            _ => (),
+    /// Adds something
+    #[clap(subcommand)]
+    Add(AddCommand),
+}
+
+#[derive(Subcommand)]
+enum AddCommand {
+    /// Adds a route
+    Route {
+        /// Path of the route on the browser
+        #[clap(long, default_value = "")]
+        to: String,
+
+        /// Name of the file with extension
+        #[clap(long)]
+        name: String,
+    },
+}
+
+pub fn start() -> Result<(), Error> {
+    let args = Cli::parse();
+
+    match args {
+        Cli::Build => {
+            let config = Config::read_config()?;
+            sub_process(&config.dir)?;
         }
-
-        Ok(())
+        Cli::Add(AddCommand::Route { to, name }) => {
+            Commander::new_route(name, to)?;
+        }
+        Cli::Start => {
+            process()?;
+        }
+        _ => (),
     }
+
+    Ok(())
 }
