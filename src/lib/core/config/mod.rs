@@ -36,7 +36,6 @@ impl Config {
         for route in &mut self.routes {
             if route.file_name.starts_with('/')
                 || route.file_name.ends_with('/')
-                || !route.file_name.ends_with(".html")
             {
                 return Err(Error::ConfigFileError(
                     error::ConfigError::ConfigFileParseError(r"The field `file_name` in your `resticular.toml` either starts with `/` or ends `/` or does not end with `.html`. "

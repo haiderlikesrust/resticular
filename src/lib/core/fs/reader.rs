@@ -114,7 +114,7 @@ impl FolderBuilder {
     pub fn start_creating_files(pages: &Vec<FileHolder<Data<Html>>>) -> Result<(), Error> {
         let config = Config::read_config()?;
         for page in pages {
-            let path = page
+            let _ = page
                 .path
                 .to_str()
                 .unwrap()
@@ -126,37 +126,17 @@ impl FolderBuilder {
             )?;
         }
 
-        let stylesheets = Reader::new(config.clone().dir.into()).read_stylesheets()?;
-        for stylesheet in stylesheets {
-            let file_name = stylesheet
+        let other_file = Reader::new(config.clone().dir.into()).read_other()?;
+        for files in other_file {
+            let _ = files
                 .path
                 .to_str()
                 .unwrap()
-                .split('/')
-                .collect::<Vec<_>>()[1];
-            info!("Creating {}.", &file_name);
-            let content = stylesheet.content.into_inner();
-            // let content = css::minify(&stylesheet.content.file_content).unwrap();
+                .replace(&config.dir, &config.out_dir);
+            info!("Creating {}.", &files.file_name);
             Writer::write(
-                PathBuf::from(format!("{}/{}", config.out_dir, file_name)),
-                Data::new(content),
-            )?;
-        }
-        let script_files = Reader::new(config.clone().dir.into()).read_script_files()?;
-        for script_file in script_files {
-            let file_name = script_file
-                .path
-                .to_str()
-                .unwrap()
-                .split('/')
-                .collect::<Vec<_>>()[1];
-            info!("Creating {}.", &file_name);
-            // let content = js::minify(&script_file.content.file_content);
-            let content = script_file.content.into_inner();
-
-            Writer::write(
-                PathBuf::from(format!("{}/{}", config.out_dir, file_name)),
-                Data::new(content.to_string()),
+                PathBuf::from(format!("{}/{}", config.out_dir, files.file_name)),
+                files.content.clone(),
             )?;
         }
 
@@ -189,65 +169,14 @@ impl Reader {
     pub fn new(path: PathBuf) -> Self {
         Self { path }
     }
-    
-    pub fn read_stylesheets(&self) -> Result<Vec<FileHolder<Data<String>>>, Error> {
+
+    pub fn read_other(&self) -> Result<Vec<FileHolder<Data<FileContent>>>, Error> {
+        let config = Config::read_config()?;
         let mut data = vec![];
-        let dir_data = std::fs::read_dir(&self.path)?
-            .map(|f| f.unwrap())
-            .map(|f| f.path())
-            .collect::<Vec<_>>();
-
-        for path in dir_data {
-            let file_name = path.to_str().unwrap().split('.').collect::<Vec<_>>()[0];
-            let path_ext = path.extension();
-            match path_ext {
-                Some(p) => {
-                    if p.to_str().unwrap() == "css" {
-                        let file_data = Reader::reader_out(path.to_path_buf())?;
-                        let file_holder = FileHolder::new(
-                            path.clone(),
-                            Data::new(file_data.into_inner().into_inner()),
-                            "css".to_owned(),
-                            file_name.to_string(),
-                        );
-                        data.push(file_holder);
-                    }
-                }
-                _ => continue,
-            }
-        }
-
+        read_push_other_files(&config.dir.into(), &mut data)?;
         Ok(data)
     }
 
-    pub fn read_script_files(&self) -> Result<Vec<FileHolder<Data<String>>>, Error> {
-        let mut data = vec![];
-        let dir_data = std::fs::read_dir(&self.path)?
-            .map(|f| f.unwrap())
-            .map(|f| f.path())
-            .collect::<Vec<_>>();
-
-        for path in dir_data {
-            let file_name = path.to_str().unwrap().split('.').collect::<Vec<_>>()[0];
-            let path_ext = path.extension();
-            match path_ext {
-                Some(p) => {
-                    if p.to_str().unwrap() == "js" {
-                        let file_data = Reader::reader_out(path.to_path_buf())?;
-                        let file_holder = FileHolder::new(
-                            path.clone(),
-                            Data::new(file_data.into_inner().into_inner()),
-                            "css".to_owned(),
-                            file_name.to_string(),
-                        );
-                        data.push(file_holder);
-                    }
-                }
-                _ => continue,
-            }
-        }
-        Ok(data)
-    }
     pub fn reader(&self) -> Result<Data<FileContent>, Error> {
         let mut buffer = String::new();
         let f = File::open(&self.path)?;
@@ -361,8 +290,6 @@ pub fn read(path: &str) -> Result<Vec<Box<dyn Content>>, Error> {
     Ok(data)
 }
 
-
-
 fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Error> {
     let dir_data = std::fs::read_dir(&path)?
         .map(|f| f.unwrap())
@@ -402,6 +329,44 @@ fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Err
             }
             true => {
                 read_push(path, data).unwrap();
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn read_push_other_files(
+    path: &PathBuf,
+    data: &mut Vec<FileHolder<Data<FileContent>>>,
+) -> Result<(), Error> {
+    let dir_data = std::fs::read_dir(&path)?
+        .map(|f| f.unwrap())
+        .map(|f| f.path())
+        .collect::<Vec<_>>();
+
+    for path in &dir_data {
+        println!("{}", &path.to_str().unwrap());
+        match path.is_dir() {
+            false => {
+                let file_name = path.file_name().unwrap().to_str().unwrap();
+                let path_ext = path.extension().unwrap().to_str().unwrap();
+                match path_ext {
+                    "html" | "md" => continue,
+                    _ => {
+                        let file_data = Reader::reader_out(path.to_path_buf())?;
+                        let file_holder = FileHolder::new(
+                            path.clone(),
+                            file_data,
+                            path_ext.to_owned(),
+                            file_name.to_string(),
+                        );
+                        data.push(file_holder);
+                    }
+                }
+            }
+            true => {
+                read_push_other_files(path, data).unwrap();
             }
         }
     }

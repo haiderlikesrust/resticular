@@ -8,6 +8,8 @@ use tower_http::services::ServeFile;
 
 use crate::error::Error;
 
+use self::routes::PreRoutes;
+
 use super::config::Config;
 #[derive(Debug, Clone)]
 pub struct MsgHandler<T> {
@@ -34,8 +36,10 @@ impl<T> MsgHandler<T> {
 }
 
 pub fn get_routes() -> Result<Router, Error> {
-    let route_info = Config::read_config()?.fix()?.routes;
+    let mut config = Config::read_config()?;
     let routes = RefCell::new(Router::new());
+    PreRoutes::fix(&mut config)?;
+    let route_info = config.fix()?.routes;
 
     for route in route_info {
         let r = ServeFile::new(route.file_name);
