@@ -297,7 +297,6 @@ fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Err
         .collect::<Vec<_>>();
 
     for path in &dir_data {
-        println!("{}", &path.to_str().unwrap());
         match path.is_dir() {
             false => {
                 let file_name = path.file_name().unwrap().to_str().unwrap();
@@ -346,7 +345,6 @@ fn read_push_other_files(
         .collect::<Vec<_>>();
 
     for path in &dir_data {
-        println!("{}", &path.to_str().unwrap());
         match path.is_dir() {
             false => {
                 let file_name = path.file_name().unwrap().to_str().unwrap();

@@ -59,7 +59,6 @@ pub fn get_routes() -> Result<Router, Error> {
 
 pub async fn server() -> Result<(), Error> {
     let routes = get_routes()?;
-    println!("{:#?}", &routes);
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     axum::Server::bind(&addr)
         .serve(routes.into_make_service())
