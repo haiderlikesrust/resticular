@@ -4,8 +4,6 @@ use std::fs;
 use colored::Colorize;
 
 
-
-
 use crate::error::Error;
 use std::io::Write;
 
@@ -28,4 +26,5 @@ to = \"{}\"\n
         println!("Created {} route for {} file", to.bold().white(), file_name.bold().green());
         Ok(())
     }
+
 }

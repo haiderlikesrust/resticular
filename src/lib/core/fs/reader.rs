@@ -155,7 +155,7 @@ impl Writer {
         let content = content.into_inner().into_inner();
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
-        writer.write(content.as_bytes())?;
+        writer.write_all(content.as_bytes())?;
         Ok(())
     }
 }

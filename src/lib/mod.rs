@@ -7,6 +7,7 @@ use std::thread;
 
 use crate::core::config::Config;
 use crate::core::fs::reader::{read, FolderBuilder};
+
 use crate::core::html::HtmlWriter;
 
 use error::Error;
@@ -16,6 +17,7 @@ pub mod cli;
 pub mod core;
 pub mod error;
 pub mod prelude;
+
 #[cfg(test)]
 pub mod tests;
 use crate::core::fs::reader::start_convert_and_parse;

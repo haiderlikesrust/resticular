@@ -32,6 +32,8 @@ enum Cli {
     /// Adds something
     #[clap(subcommand)]
     Add(AddCommand),
+    /// Builds using parcel and runs parcel development server.
+    Parcel
 }
 
 #[derive(Subcommand)]
@@ -61,6 +63,9 @@ pub fn start() -> Result<(), Error> {
         }
         Cli::Start => {
             process()?;
+        },
+        Cli::Parcel => {
+            
         }
         _ => (),
     }

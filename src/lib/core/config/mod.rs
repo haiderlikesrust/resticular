@@ -48,17 +48,4 @@ impl Config {
     }
 }
 
-#[cfg(test)]
-mod test {
-    use super::Config;
-    #[test]
-    fn check_config() {
-        let c = Config::read_config().unwrap();
-        assert_eq!(c.dir, "dist")
-    }
 
-    #[test]
-    fn check_file() {
-        let _c = Config::read_config().unwrap();
-    }
-}

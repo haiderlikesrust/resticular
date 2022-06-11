@@ -7,6 +7,7 @@ pub mod fs;
 pub mod markdown;
 pub mod html;
 pub mod http;
+pub mod data;
 
 /// This trait basically implements the functionality of returning whats inside the tuple struct.
 /// ```
@@ -14,8 +15,8 @@ pub mod http;
 /// struct Foo(String);
 /// impl IntoInner for Foo {
 ///     type Output = String;
-///     fn into_inner(self) -> Self::Output {
-///         self.0
+///     fn into_inner(&self) -> Self::Output {
+///        self.0.clone()
 ///     }
 /// }
 /// ```
