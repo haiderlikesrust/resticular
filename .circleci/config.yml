@@ -18,7 +18,7 @@ jobs:
   resticular-check:
     steps:
       - checkout
-      run: cargo check
+        run: cargo check
     
 
 # Invoke jobs via workflows
