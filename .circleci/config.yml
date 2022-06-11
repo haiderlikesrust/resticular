@@ -7,19 +7,19 @@ version: 2.1
 jobs:
   resticular-test:
     docker: 
-      - image: circleci/rust@1.6.0
+      - image: cimg/rust@1.6.0
     steps:
       - checkout
       - run: cargo test
   resticular-clippy:
     docker: 
-      - image: circleci/rust@1.6.0
+      - image: cimg/rust@1.6.0
     steps:
       - checkout
       - run: cargo clippy
   resticular-check:
     docker: 
-      - image: circleci/rust@1.6.0
+      - image: cimg/rust@1.6.0
     steps:
       - checkout
       - run: cargo check
