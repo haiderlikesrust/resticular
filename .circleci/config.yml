@@ -9,19 +9,16 @@ orbs:
 jobs:
   resticular-test:
     steps:
-      - run:
-        name: Running tests
-        command: cargo test
+      - checkout
+        run: cargo test
   resticular-clippy:
     steps:
-      - run:
-        name: Running clippy
-        command: cargo clippy
+      - checkout
+        run: cargo clippy
   resticular-check:
     steps:
-      - run:
-        name: Checking code
-        command: cargo check
+      - checkout
+      run: cargo check
     
 
 # Invoke jobs via workflows
