@@ -94,11 +94,11 @@ pub fn process() -> Result<(), Error> {
         match config {
             Config {
                 out_dir: _,
-                dir,
+                source,
                 lazy_images: _,
                 routes: _,
             } => {
-                sub_process(&dir)?;
+                sub_process(&source)?;
                 let eye_msg = MsgHandler::new();
                 handle_thread_error_with_error!(
                     eye_msg.send(EyeKeeper::Unchanged),
@@ -108,10 +108,10 @@ pub fn process() -> Result<(), Error> {
                 loop {
                     match msg.receive() {
                         Ok(ProcessIndicator::True) => {
-                            sub_process(&dir)?;
+                            sub_process(&source)?;
                         }
                         Ok(ProcessIndicator::False) => {
-                            sub_process(&dir)?;
+                            sub_process(&source)?;
                         }
                         Err(_) => {
                             todo!()

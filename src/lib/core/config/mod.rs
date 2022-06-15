@@ -8,7 +8,7 @@ pub const CONFIG_PATH: &str = "resticular.toml";
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub out_dir: String,
-    pub dir: String,
+    pub source: String,
     pub lazy_images: Option<bool>,
     pub routes: Vec<Route>,
 }

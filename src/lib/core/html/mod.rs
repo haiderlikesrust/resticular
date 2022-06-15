@@ -86,7 +86,7 @@ impl HtmlWriter {
         let file_name = HtmlWriter::get_file_attr_val(html_page)?;
         let config = Config::read_config().unwrap();
 
-        if format!("{}/{}", config.dir, &file_name)
+        if format!("{}/{}", config.source, &file_name)
             == *markdown_page.path.to_str().unwrap()
         {
             let element_content_handlers = vec![element!("restic-markdown", |el| {

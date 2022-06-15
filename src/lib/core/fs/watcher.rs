@@ -18,7 +18,7 @@ pub fn watch() -> Result<(), Error> {
     let config = Config::read_config()?;
     let mut hotwatch =
         Hotwatch::new_with_custom_delay(Duration::from_secs(1)).expect("Error hotwatch");
-    hotwatch.watch(config.dir, |event: Event| {
+    hotwatch.watch(config.source, |event: Event| {
         let conf = Config::read_config().unwrap();
         let msg = MsgHandler::new();
         let ws = WsHandler::new("http://0.0.0.0:4200/");
@@ -29,7 +29,7 @@ pub fn watch() -> Result<(), Error> {
                     msg.send(crate::EyeKeeper::Changed),
                     Error::MsgError
                 );
-                handle_thread_error!(sub_process(&conf.dir));
+                handle_thread_error!(sub_process(&conf.source));
                 ws.out();
                 Flow::Continue
             }
@@ -40,7 +40,7 @@ pub fn watch() -> Result<(), Error> {
                     msg.send(crate::EyeKeeper::Changed),
                     Error::MsgError
                 );
-                handle_thread_error!(sub_process(&conf.dir));
+                handle_thread_error!(sub_process(&conf.source));
                 Flow::Continue
             }
             _ => Flow::Continue,

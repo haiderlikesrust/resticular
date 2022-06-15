@@ -32,9 +32,13 @@ enum Cli {
     /// Adds something
     #[clap(subcommand)]
     Add(AddCommand),
-    /// Builds using parcel and runs parcel development server.
-    Parcel
+    // Creates new resticular project.
+    New {
+        name: String
+    }
+    
 }
+
 
 #[derive(Subcommand)]
 enum AddCommand {
@@ -56,7 +60,7 @@ pub fn start() -> Result<(), Error> {
     match args {
         Cli::Build => {
             let config = Config::read_config()?;
-            sub_process(&config.dir)?;
+            sub_process(&config.source)?;
         }
         Cli::Add(AddCommand::Route { to, name }) => {
             Commander::new_route(name, to)?;
@@ -64,8 +68,8 @@ pub fn start() -> Result<(), Error> {
         Cli::Start => {
             process()?;
         },
-        Cli::Parcel => {
-            
+        Cli::New {name} => {
+           Commander::new_cmd(&name)?;
         }
         _ => (),
     }

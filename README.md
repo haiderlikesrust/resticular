@@ -40,11 +40,11 @@ You can also use ```cargo install resticular
 
 ```
 out_dir = "YOUR_PATH"
-dir = "YOUR_PATH",
+source = "YOUR_PATH",
 lazy_images = true || false || null -> don't add it (optional field)
 ```
 
-Inside `dir` folder create `markdown` and `html` you can name it whatever you want doesn't matter.
+Inside `source` folder create `markdown` and `html` you can name it whatever you want doesn't matter.
 Fill the contents with what you want, if you `markdown` content in html.
 Use the `<restic-markdown file="PATH_TO_MARKDOWN_FILE"></restic-markdown>`
 

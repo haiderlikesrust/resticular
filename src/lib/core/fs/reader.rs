@@ -118,7 +118,7 @@ impl FolderBuilder {
                 .path
                 .to_str()
                 .unwrap()
-                .replace(&config.dir, &config.out_dir);
+                .replace(&config.source, &config.out_dir);
             info!("Creating {}.", &page.file_name);
             Writer::write(
                 PathBuf::from(format!("{}/{}", config.out_dir, page.file_name)),
@@ -126,18 +126,29 @@ impl FolderBuilder {
             )?;
         }
 
-        let other_file = Reader::new(config.clone().dir.into()).read_other()?;
+        let other_file = Reader::new(config.clone().source.into()).read_other()?;
         for files in other_file {
             let _ = files
                 .path
                 .to_str()
                 .unwrap()
-                .replace(&config.dir, &config.out_dir);
+                .replace(&config.source, &config.out_dir);
             info!("Creating {}.", &files.file_name);
-            Writer::write(
-                PathBuf::from(format!("{}/{}", config.out_dir, files.file_name)),
-                files.content.clone(),
-            )?;
+            match files.ext.as_str() {
+                "png" | "svg" | "jpeg" => {
+                    Writer::write(
+                        PathBuf::from(format!("{}/assets/{}", config.out_dir, files.file_name)),
+                        files.content.clone(),
+                    )?;
+                }, 
+                _ => {
+                    Writer::write(
+                        PathBuf::from(format!("{}/{}", config.out_dir, files.file_name)),
+                        files.content.clone(),
+                    )?;
+                }
+            }
+            
         }
 
         Ok(())
@@ -173,7 +184,7 @@ impl Reader {
     pub fn read_other(&self) -> Result<Vec<FileHolder<Data<FileContent>>>, Error> {
         let config = Config::read_config()?;
         let mut data = vec![];
-        read_push_other_files(&config.dir.into(), &mut data)?;
+        read_push_other_files(&config.source.into(), &mut data)?;
         Ok(data)
     }
 
@@ -228,20 +239,6 @@ impl Reader {
         Ok(data)
     }
 
-    fn find_files(
-        path: &PathBuf,
-        file_name: &str,
-        ext: &str,
-    ) -> Result<FileHolder<Data<Html>>, Error> {
-        let file_data: Data<Html> = Reader::reader_out(path.to_path_buf())?.into();
-        let file_holder = FileHolder::new(
-            path.clone(),
-            file_data,
-            ext.to_owned(),
-            file_name.to_string(),
-        );
-        Ok(file_holder)
-    }
 }
 
 pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<Data<Html>>> {
