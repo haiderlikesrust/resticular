@@ -3,6 +3,7 @@ use crate::core::config::Config;
 use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
 use crate::error::Error;
+use image::ImageBuffer;
 
 
 use std::fmt::Debug;
@@ -136,10 +137,8 @@ impl FolderBuilder {
             info!("Creating {}.", &files.file_name);
             match files.ext.as_str() {
                 "png" | "svg" | "jpeg" => {
-                    Writer::write(
-                        PathBuf::from(format!("{}/assets/{}", config.out_dir, files.file_name)),
-                        files.content.clone(),
-                    )?;
+                    let image = image::open(files.path)?;
+                    image.save(format!("{}/assets/{}", config.out_dir, files.file_name))?;
                 }, 
                 _ => {
                     Writer::write(

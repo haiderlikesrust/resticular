@@ -17,6 +17,7 @@ pub mod cli;
 pub mod core;
 pub mod error;
 pub mod prelude;
+use error::ConfigError;
 
 #[cfg(test)]
 pub mod tests;
@@ -76,13 +77,19 @@ fn sub_process(dir: &str) -> Result<(), Error> {
 
 pub fn process() -> Result<(), Error> {
     let conf = Config::read_config();
-    if let Err(_) = conf {
-        return Err(Error::ConfigFileError(
-            error::ConfigError::ConfigFileNotFound(
-                "Config file not found. Make sure you have a file named `resticular.toml`"
-                    .to_string(),
-            ),
-        ));
+    if let Err(e) = conf {
+        match e {
+            Error::FileIOError(_) => {
+                return Err(Error::ConfigFileError(
+                    error::ConfigError::ConfigFileNotFound(
+                        "Config file not found. Make sure you have a file named `resticular.toml`"
+                            .to_string(),
+                    ),
+                ));
+            },
+            _ => return Err(e),
+
+        }
     }
     let t_process = thread::spawn(move || -> Result<(), Error> {
         let subscriber = FmtSubscriber::builder()

@@ -23,7 +23,9 @@ pub enum Error {
     #[error("Fs Error: {0}")]
     FsError(#[from] fs_extra::error::Error),
     #[error("Config file error: {0}")]
-    ConfigFileError(#[from] ConfigError)
+    ConfigFileError(#[from] ConfigError),
+    #[error("Image Error: {0}")]
+    ImageError(#[from] image::ImageError)
 }
 
 #[derive(Debug, Error)]

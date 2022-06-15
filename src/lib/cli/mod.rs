@@ -32,8 +32,9 @@ enum Cli {
     /// Adds something
     #[clap(subcommand)]
     Add(AddCommand),
-    // Creates new resticular project.
+    /// Creates new resticular project.
     New {
+        /// Name of the project.
         name: String
     }
     
