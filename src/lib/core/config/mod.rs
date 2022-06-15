@@ -28,7 +28,7 @@ impl Config {
         Ok(config)
     }
     fn parse(config_content: &str) -> Result<Config, ConfigError> {
-        let a: Config = from_str(&config_content)?;
+        let a: Config = from_str(config_content)?;
         Ok(a)
     }
 
