@@ -15,6 +15,7 @@ use super::{
     fs::{reader::FileHolder, Data, Html},
     IntoInner,
 };
+use soup::prelude::*;
 
 pub struct HtmlWriter;
 pub struct FileAttr(Rc<RefCell<String>>);
@@ -211,7 +212,6 @@ mod test {
             .into_inner();
         assert_eq!(d, r#"<img src="foo.png" loading="lazy" />"#)
     }
-    
 }
 
 // press -> Files Read -> Markdown Parse -> HTML Convert -> l

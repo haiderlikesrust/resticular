@@ -24,8 +24,8 @@ pub enum Error {
     FsError(#[from] fs_extra::error::Error),
     #[error("Config file error: {0}")]
     ConfigFileError(#[from] ConfigError),
-    #[error("Image Error: {0}")]
-    ImageError(#[from] image::ImageError)
+    #[error("There is a `restic-markdown` tag without the file attribute.")]
+    ResticMarkdownEmpty
 }
 
 #[derive(Debug, Error)]

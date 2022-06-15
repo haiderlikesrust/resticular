@@ -3,13 +3,17 @@ use crate::core::config::Config;
 use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
 use crate::error::Error;
-use image::ImageBuffer;
 
+use fs_extra::dir::CopyOptions;
 
 use std::fmt::Debug;
+use std::fs;
+use std::fs::copy;
 use std::fs::create_dir;
 
 use std::fs::File;
+use std::fs::remove_dir;
+use std::fs::remove_dir_all;
 use std::fs::{read_dir, remove_file};
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
@@ -98,12 +102,8 @@ impl FolderBuilder {
     pub fn create_folder() -> Result<(), Error> {
         if FolderBuilder::check_build_dir() {
             let config = Config::read_config()?;
-            let dir_content = read_dir(config.out_dir)?.collect::<Vec<_>>();
-            for file in dir_content {
-                let file = file?.path();
-                remove_file(file)?;
-            }
-
+            remove_dir_all(&config.out_dir)?;
+            create_dir(&config.out_dir)?;
             return Ok(());
         }
         let config = Config::read_config()?;
@@ -126,7 +126,8 @@ impl FolderBuilder {
                 page.content.clone(),
             )?;
         }
-
+        create_dir(format!("{}/assets", &config.out_dir))?;
+        copy_images()?;
         let other_file = Reader::new(config.clone().source.into()).read_other()?;
         for files in other_file {
             let _ = files
@@ -136,10 +137,7 @@ impl FolderBuilder {
                 .replace(&config.source, &config.out_dir);
             info!("Creating {}.", &files.file_name);
             match files.ext.as_str() {
-                "png" | "svg" | "jpeg" => {
-                    let image = image::open(files.path)?;
-                    image.save(format!("{}/assets/{}", config.out_dir, files.file_name))?;
-                }, 
+                "png" | "jpeg" => continue,
                 _ => {
                     Writer::write(
                         PathBuf::from(format!("{}/{}", config.out_dir, files.file_name)),
@@ -147,7 +145,6 @@ impl FolderBuilder {
                     )?;
                 }
             }
-            
         }
 
         Ok(())
@@ -237,7 +234,6 @@ impl Reader {
         }
         Ok(data)
     }
-
 }
 
 pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<Data<Html>>> {
@@ -346,7 +342,7 @@ fn read_push_other_files(
                 let file_name = path.file_name().unwrap().to_str().unwrap();
                 let path_ext = path.extension().unwrap().to_str().unwrap();
                 match path_ext {
-                    "html" | "md" => continue,
+                    "html" | "md" | "png" | "jpeg" => continue,
                     _ => {
                         let file_data = Reader::reader_out(path.to_path_buf())?;
                         let file_holder = FileHolder::new(
@@ -365,6 +361,17 @@ fn read_push_other_files(
         }
     }
 
+
+    Ok(())
+}
+
+fn copy_images() -> Result<(), Error> {
+    let config = Config::read_config()?;
+    let dir_data = read_dir(format!("{}/assets", config.source))?.collect::<Vec<_>>();
+    for image in dir_data {
+        let image = image?;
+        copy(image.path(), format!("{}/assets/{}", config.out_dir, image.file_name().to_str().unwrap()))?;
+    }
     Ok(())
 }
 
