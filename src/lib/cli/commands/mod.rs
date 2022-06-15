@@ -40,7 +40,7 @@ to = \"{}\"\n
         create_dir(format!("{project_path}/source"))?;
         create_dir(format!("{project_path}/dist"))?;
         let mut config = File::create(format!("{project_path}/resticular.toml"))?;
-        config.write( DEF_CONFIG.as_bytes())?;
+        config.write_all( DEF_CONFIG.as_bytes())?;
         println!("Created new resticular project `{}`.", name.bold().green());
 
         Ok(())
