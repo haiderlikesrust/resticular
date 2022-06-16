@@ -31,7 +31,7 @@ I wanted to make a blog and write some blog posts about Rust, I searched some SS
 **Optional**
 
 
-You can also use ```cargo install resticular
+You can also use ```cargo install resticular```
 
 - Clone the repo
 - Create a `resticular.toml` file.
