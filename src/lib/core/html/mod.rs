@@ -15,7 +15,6 @@ use super::{
     fs::{reader::FileHolder, Data, Html},
     IntoInner,
 };
-use soup::prelude::*;
 
 pub struct HtmlWriter;
 pub struct FileAttr(Rc<RefCell<String>>);
