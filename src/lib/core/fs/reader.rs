@@ -4,17 +4,17 @@ use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
 use crate::error::Error;
 
-use fs_extra::dir::CopyOptions;
+
 
 use std::fmt::Debug;
-use std::fs;
+
 use std::fs::copy;
 use std::fs::create_dir;
 
 use std::fs::File;
-use std::fs::remove_dir;
+
 use std::fs::remove_dir_all;
-use std::fs::{read_dir, remove_file};
+use std::fs::{read_dir};
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
 use tracing::info;

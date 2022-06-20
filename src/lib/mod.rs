@@ -17,7 +17,7 @@ pub mod cli;
 pub mod core;
 pub mod error;
 pub mod prelude;
-use error::ConfigError;
+
 
 #[cfg(test)]
 pub mod tests;
