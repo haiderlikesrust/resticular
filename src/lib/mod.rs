@@ -17,6 +17,7 @@ pub mod cli;
 pub mod core;
 pub mod error;
 pub mod prelude;
+use colored::{Color, Colorize};
 
 
 #[cfg(test)]
@@ -62,6 +63,7 @@ pub enum ProcessIndicator {
 
 fn sub_process(dir: &str) -> Result<(), Error> {
     info!("Creating file reader..");
+    alert_cli!(format!("Creating the file {}", "reader".green()), bold);
     let f = read(dir)?;
     info!("Reading {}", dir);
     let f_parser = start_convert_and_parse(f);
