@@ -1,12 +1,10 @@
 pub mod minify;
-use lazy_static::lazy_static;
 use regex::Regex;
 use scraper::Selector;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::rc::Rc;
-use tera::{Context, Template, Tera};
 
 use lol_html::{element, HtmlRewriter, Settings};
 use lol_html::{rewrite_str, RewriteStrSettings};
@@ -24,31 +22,6 @@ use super::{
 enum ResticTag {
     ResticMarkdown,
     ResticMarkdownDir,
-}
-
-lazy_static! {
-    pub static ref TEMPLATES: Tera = {
-        let config = Config::read_config().unwrap();
-        let mut tera = match Tera::new(&format!("{}/templates/**/*", config.out_dir)) {
-            Ok(t) => t,
-            Err(e) => {
-                panic!("Tera error: {}", e);
-            }
-        };
-
-        tera.autoescape_on(vec!["html"]);
-        tera
-    };
-}
-
-pub struct TemplateManager;
-impl TemplateManager {
-    pub fn replace(contents: Vec<FileHolder<Data<Html>>>) -> Vec<FileHolder<Data<Html>>> {
-        let d = vec![];
-        let mut context = Context::new();
-
-        d
-    }
 }
 
 pub struct HtmlWriter;
@@ -162,19 +135,17 @@ impl HtmlWriter {
                 _ => (),
             }
         }
-        // let h_c = html_pages.clone();
-        // let m_c = markdown_pages.clone();
+        let h_c = html_pages.clone();
+        let m_c = markdown_pages.clone();
         let mut pages = HtmlWriter::start_replacing(html_pages, markdown_pages);
-        // println!("{:#?}", &pages);
-        // HtmlWriter::start_creating(&h_c, &m_c, &mut pages).unwrap();
-        // // println!("{:#?}", &pages);
+        HtmlWriter::start_creating(&h_c, &m_c, &mut pages).unwrap();
         pages
     }
 
     fn start_creating(
         html_pages: &Vec<FileHolder<Data<Html>>>,
         markdown_pages: &Vec<FileHolder<Data<Html>>>,
-        pages: &mut Vec<FileHolder<Data<Html>>>
+        pages: &mut Vec<FileHolder<Data<Html>>>,
     ) -> Result<(), Error> {
         for html_page in html_pages {
             if html_page
@@ -188,7 +159,9 @@ impl HtmlWriter {
                     let file_attr: PathBuf =
                         HtmlWriter::get_file_attr_val(&html_page, ResticTag::ResticMarkdownDir)?
                             .into();
+                    println!("{:?}", file_attr.to_str().unwrap());
                     let page_path: PathBuf = markdown_page.path.parent().unwrap().into();
+                    println!("{:?}", page_path.to_str().unwrap());
                     if page_path == file_attr {
                         HtmlWriter::markdown_replicator(html_page, markdown_page, pages);
                     }
@@ -222,8 +195,9 @@ impl HtmlWriter {
         )
         .unwrap();
         let e = format!(
-            "{}-{}",
-            html_page_clone.file_name, markdown_page_clone.file_name
+            "{}-{}.html",
+            html_page_clone.file_name.split('.').collect::<Vec<_>>()[0],
+            markdown_page_clone.file_name.split('.').collect::<Vec<_>>()[0]
         );
         let html_file_path: PathBuf = html_page_clone.path.parent().unwrap().into();
         let file_path = format!("{}/{}", html_file_path.display(), e);
