@@ -159,9 +159,7 @@ impl HtmlWriter {
                     let file_attr: PathBuf =
                         HtmlWriter::get_file_attr_val(&html_page, ResticTag::ResticMarkdownDir)?
                             .into();
-                    println!("{:?}", file_attr.to_str().unwrap());
                     let page_path: PathBuf = markdown_page.path.parent().unwrap().into();
-                    println!("{:?}", page_path.to_str().unwrap());
                     if page_path == file_attr {
                         HtmlWriter::markdown_replicator(html_page, markdown_page, pages);
                     }

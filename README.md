@@ -22,16 +22,107 @@ I wanted to make a blog and write some blog posts about Rust, I searched some SS
 
 - SEO optimization
 - Server refreshes on file changes (file watcher works but server doesnt refresh)
+- Metadata extraction from markdown files.
 
 **NOTE:** The above list will be updated on every PR and weekly
 
-### Small Tutorial
+### Core functionality
 
+Here I'm going to do some code explaination of resticular or how it works, We'll be focusing on two custom tags that resticular has given to users and some other stuff, first one is `restic-markdown` and other is `restic-markdown-dir`, similar right? But there is a difference, lets talk about what the first tag does.
+
+**`restic-markdown`**
+
+When you use this tag, the resticular renderer checks the file attribute which is required, then it goes throw the list of markdown files which are already parsed and checks their path. If the path matches, it appends the parsed markdown content into the file, note that markdown files are not outputed in `out_dir`. You cannot have multiple `restic-markdown` tags in one file, this is where the `restic-markdown-dir` comes.
+
+**`restic-markdown-dir`**
+When the renderer sees a `restic-markdown-dir` tag in a html file, it finds all the markdown files whose parent path is the path provided in the file using the `path` attribute. The renderer then goes through each markdown file and for each it creates a new html file, the content of file in which the tag was used is still there, the parsed markdown gets appended into the tag.
+
+Let me demonstrate this using a small diagram.
+
+```
+source
+    - foo.html (has the restic-markdown-tag)
+    - index.html
+    - assets
+    - markdown
+        - a.md
+        - b.md
+  
+      (RENDER PROCESS)
+
+dist
+    - index.html
+    - foo-a.html
+    - foo.b.html
+    - assets
+    0 
+```
+
+Suppose the content of `markdown/a.md` is 
+
+```
+Hello World
+```
+and the content of `markdown/b.md` is
+```
+Resticular is Great.
+```
+and finally the `foo.html` has
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Hello World in the index.html<h1/>
+    <restic-markdown-dir path="source/markdown"></restic-markdown-dir>
+</body>
+</html>
+``` 
+You can expect the output to be for `foo-a.html`:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Hello World in the index.html<h1/>
+    <restic-markdown-dir path="source/markdown">
+      <p>Hello World</p>
+    </restic-markdown-dir>
+</body>
+</html>
+```
+
+I hope you found this useful.
+
+
+**Resticular make sures that you have the file structure**
+
+
+When you use resticular, the best way to create a new project is to use the CLI, making everything manually can sometimes give errors because some directories are essential like `assets`. If you don't have that you will get a file not found error, I'm  working my best to improving the errors, so soon this error will be changed, it will not be a big deal to change this error.
+
+
+**Maxmize use of CLI**
+
+
+When using resticular, you should use CLI as much as you can, doing things manually can lead to errors and will get you exhausted. 
+
+
+
+### Small Tutorial
 
 **Optional**
 
-
-You can also use ```cargo install resticular```
+You can also use `cargo install resticular`
 
 - Clone the repo
 - Create a `resticular.toml` file.

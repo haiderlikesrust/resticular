@@ -11,6 +11,7 @@ pub struct Config {
     pub source: String,
     pub lazy_images: Option<bool>,
     pub routes: Vec<Route>,
+    pub global_css: Option<bool>
 }
 #[derive(Debug, Deserialize, Clone)]
 pub struct Route {
