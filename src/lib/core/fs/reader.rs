@@ -1,22 +1,24 @@
 use super::{Content, Data, Html, Markdown};
+use crate::alert_cli;
 use crate::core::config::Config;
 use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
 use crate::error::Error;
 
-use fs_extra::dir::CopyOptions;
+
 
 use std::fmt::Debug;
-use std::fs;
+
 use std::fs::copy;
 use std::fs::create_dir;
 
 use std::fs::File;
-use std::fs::remove_dir;
+
 use std::fs::remove_dir_all;
-use std::fs::{read_dir, remove_file};
+use std::fs::{read_dir};
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
+use colored::Colorize;
 use tracing::info;
 
 #[derive(Debug, Clone)]
@@ -107,7 +109,7 @@ impl FolderBuilder {
             return Ok(());
         }
         let config = Config::read_config()?;
-        info!("Creating {}.", &config.out_dir);
+        alert_cli!(format!("Creating {}.", &config.out_dir.green()), bold);
         create_dir(PathBuf::from(config.out_dir))?;
         Ok(())
     }
@@ -120,7 +122,7 @@ impl FolderBuilder {
                 .to_str()
                 .unwrap()
                 .replace(&config.source, &config.out_dir);
-            info!("Creating {}.", &page.file_name);
+            alert_cli!(format!("Creating {}.", &page.file_name), bold);
             Writer::write(
                 PathBuf::from(format!("{}/{}", config.out_dir, page.file_name)),
                 page.content.clone(),
