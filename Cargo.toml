@@ -3,10 +3,10 @@ description = "Blazingly Fast Static Site Generator"
 readme = "README.md"
 edition = "2021"
 name = "resticular"
-version = "0.1.5"
+version = "0.1.6"
 repository = "https://github.com/Haider-Ali-Dev/resticular"
 license = "MIT OR Apache-2.0"
-exclude = ["/examples"]
+exclude = ["/examples", "resticular.toml", "/source", "/dist"]
 [dependencies]
 axum = "0.4"
 hotwatch = "0.4.6"
