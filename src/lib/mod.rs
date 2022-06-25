@@ -70,7 +70,7 @@ fn sub_process(dir: &str) -> Result<(), Error> {
         format!("Reading files in {}.", dir.underline().green()),
         bold
     );
-    let f_parser = start_convert_and_parse(f);
+    let f_parser = start_convert_and_parse(f)?;
     info!("Parsing markdown.");
     alert_cli!(format!("Parsing {}", "markdown".green()), bold);
 

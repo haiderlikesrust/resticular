@@ -2,6 +2,7 @@ use super::DataMap;
 use super::{Content, Data, Html, Markdown};
 use crate::alert_cli;
 use crate::core::config::Config;
+use crate::core::data::PageData;
 use crate::core::markdown::MarkdownDataExtractor;
 use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
@@ -22,7 +23,7 @@ use std::fs::{read_dir};
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
 use colored::Colorize;
-use tera::Context;
+use tera::{Context, Tera};
 use tracing::info;
 
 
@@ -265,12 +266,13 @@ impl Reader {
     }
 }
 
-pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<Data<Html>>> {
+pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Result<Vec<FileHolder<Data<Html>>>, Error> {
     let mut output = Vec::new();
     for file in files {
         let downcasted = file.downcast_ref::<FileHolder<Data<Markdown>>>();
         match downcasted {
             Some(f) => {
+            
                 let extracted = MarkdownDataExtractor::new(f.content.clone()).extract();
                 let file_content = extracted.content.clone().into_inner();
                 let markdown_parser = MarkdownParser::new(Data::new(file_content));
@@ -287,8 +289,25 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
                 let downcasted_html = file.downcast_ref::<FileHolder<Data<Html>>>();
                 match downcasted_html {
                     Some(f) => {
-                        let file_content = f.clone().content.into_inner();
+                        // -- NOT STABLE --
+                        // -- Haider-Ali-Dev --
+                        // This part is not stable because it is just ignoring the file which has errors, because the data extracted from
+                        // markdown files is used as expressions in other HTML files, so it gives error, I have just ignored that error, we might
+                        // face other errors which makes this unstable and gives poor UI.
+                        let mut temp = Tera::default();
+                        let mut context = Context::new();
+                        PageData::extract(&mut context)?;
+                        let mut file_content = f.clone().content.into_inner();
                         let f_clone = f.clone();
+                        temp.add_raw_template(&f_clone.file_name, &f_clone.content.into_inner().into_inner())?;
+                        match temp.render(&f_clone.file_name, &context) {
+                            Ok(f) => {
+                                file_content = Html::new(&f);
+                            },
+                            Err(_) => ()
+                        }
+                        // -- NOT STABLE --
+
                         output.push(FileHolder::new(
                             f_clone.path,
                             Data::new(file_content),
@@ -304,7 +323,7 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
             }
         }
     }
-    output
+    Ok(output)
 }
 
 
