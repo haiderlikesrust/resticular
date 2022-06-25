@@ -2,20 +2,20 @@ pub mod minify;
 use lol_html::{element, HtmlRewriter, Settings};
 use lol_html::{rewrite_str, RewriteStrSettings};
 
-use regex::Regex;
+
 use scraper::Selector;
 use std::cell::RefCell;
-use std::collections::HashMap;
+
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::sync::Mutex;
+
 
 use crate::core::config::Route;
 use crate::error::Error;
 
 use super::config::Config;
 
-use super::fs::Markdown;
+
 use super::{
     fs::{reader::FileHolder, Data, Html},
     IntoInner,
@@ -162,7 +162,7 @@ impl HtmlWriter {
             {
                 for markdown_page in markdown_pages {
                     let file_attr: PathBuf =
-                        HtmlWriter::get_file_attr_val(&html_page, ResticTag::ResticMarkdownDir)?
+                        HtmlWriter::get_file_attr_val(html_page, ResticTag::ResticMarkdownDir)?
                             .into();
                     let page_path: PathBuf = markdown_page.path.parent().unwrap().into();
                     if page_path == file_attr {
@@ -209,13 +209,12 @@ impl HtmlWriter {
 
         HtmlWriter::add_route(
             &e.clone(),
-            &markdown_page_clone
+            markdown_page_clone
                 .data
                 .as_ref()
                 .unwrap()
                 .get("route")
-                .unwrap()
-                .to_string(),
+                .unwrap(),
         )?;
 
         let parsed_file = temp.render(&e, &data)?;
@@ -329,7 +328,7 @@ impl HtmlWriter {
 #[cfg(test)]
 mod test {
 
-    use std::path::{Path, PathBuf};
+    use std::path::{PathBuf};
 
     use super::HtmlWriter;
     use crate::core::{
