@@ -1,4 +1,4 @@
-use std::{fmt::Debug, collections::HashMap, hash::Hash};
+use std::{fmt::Debug, collections::HashMap};
 use fs_extra::dir::get_size;
 
 use mopa::{Any, mopafy};

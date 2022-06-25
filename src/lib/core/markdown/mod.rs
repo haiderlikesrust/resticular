@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::{
-    fs::{Data, Html, Markdown, Content},
+    fs::{Data, Html, Markdown},
     IntoInner,
 };
 use pulldown_cmark::{html, Parser};
@@ -44,13 +44,13 @@ impl MarkdownDataExtractor {
                 let vec_of_data = m.split('\n').collect::<Vec<_>>();
                 let into_hash = vec_of_data
                     .iter()
-                    .map(|m| m.split("=").collect::<Vec<_>>())
+                    .map(|m| m.split('=').collect::<Vec<_>>())
                     .collect::<Vec<_>>();
 
                 into_hash.iter().for_each(|d| {
                     data.insert(
                         d[0].trim().to_string(),
-                        d[1].replace(r#"""#, "").trim().to_string(),
+                        d[1].replace('"', "").trim().to_string(),
                     );
                 });
                 let new_content = regex.replace_all(&self.content.into_inner().into_inner(), "").to_string();

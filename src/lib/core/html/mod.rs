@@ -1,21 +1,24 @@
 pub mod minify;
 use lol_html::{element, HtmlRewriter, Settings};
 use lol_html::{rewrite_str, RewriteStrSettings};
+use serde_json::{json, Map};
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::{BufReader, Read};
+use std::path::Path;
 
-use regex::Regex;
 use scraper::Selector;
 use std::cell::RefCell;
-use std::collections::HashMap;
+
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::sync::Mutex;
 
 use crate::core::config::Route;
 use crate::error::Error;
 
 use super::config::Config;
 
-use super::fs::Markdown;
+use super::data::PageData;
 use super::{
     fs::{reader::FileHolder, Data, Html},
     IntoInner,
@@ -162,7 +165,7 @@ impl HtmlWriter {
             {
                 for markdown_page in markdown_pages {
                     let file_attr: PathBuf =
-                        HtmlWriter::get_file_attr_val(&html_page, ResticTag::ResticMarkdownDir)?
+                        HtmlWriter::get_file_attr_val(html_page, ResticTag::ResticMarkdownDir)?
                             .into();
                     let page_path: PathBuf = markdown_page.path.parent().unwrap().into();
                     if page_path == file_attr {
@@ -196,6 +199,7 @@ impl HtmlWriter {
         markdown_page: &FileHolder<Data<Html>>,
         pages: &mut Vec<FileHolder<Data<Html>>>,
     ) -> Result<(), Error> {
+        let config = Config::read_config()?;
         let html_page_clone = html_page.clone();
         let markdown_page_clone = markdown_page.clone();
         let e = format!(
@@ -204,18 +208,18 @@ impl HtmlWriter {
             markdown_page_clone.file_name.split('.').collect::<Vec<_>>()[0]
         );
         let mut temp = Tera::default();
-        let data = markdown_page_clone.data_as_context().unwrap();
+        let mut data = markdown_page_clone.data_as_context().unwrap();
+        PageData::extract(&mut data)?;
         temp.add_raw_template(&e, &html_page_clone.content.into_inner().into_inner())?;
 
         HtmlWriter::add_route(
             &e.clone(),
-            &markdown_page_clone
+            markdown_page_clone
                 .data
                 .as_ref()
                 .unwrap()
                 .get("route")
-                .unwrap()
-                .to_string(),
+                .unwrap(),
         )?;
 
         let parsed_file = temp.render(&e, &data)?;
@@ -329,7 +333,7 @@ impl HtmlWriter {
 #[cfg(test)]
 mod test {
 
-    use std::path::{Path, PathBuf};
+    use std::path::PathBuf;
 
     use super::HtmlWriter;
     use crate::core::{

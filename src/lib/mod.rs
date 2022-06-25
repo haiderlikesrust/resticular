@@ -17,7 +17,7 @@ pub mod cli;
 pub mod core;
 pub mod error;
 pub mod prelude;
-use colored::{Color, Colorize};
+use colored::{Colorize};
 
 #[cfg(test)]
 pub mod tests;
@@ -63,14 +63,14 @@ pub enum ProcessIndicator {
 fn sub_process(dir: &str) -> Result<(), Error> {
 
     let global_css = Config::read_config()?.global_css;
-    let mut config = Config::read_config()?;
+    let _config = Config::read_config()?;
     alert_cli!(format!("Creating the file {}.", "reader".green()), bold);
     let f = read(dir)?;
     alert_cli!(
         format!("Reading files in {}.", dir.underline().green()),
         bold
     );
-    let f_parser = start_convert_and_parse(f);
+    let f_parser = start_convert_and_parse(f)?;
     info!("Parsing markdown.");
     alert_cli!(format!("Parsing {}", "markdown".green()), bold);
 
