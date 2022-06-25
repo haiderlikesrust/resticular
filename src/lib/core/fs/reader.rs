@@ -1,5 +1,6 @@
 use super::DataMap;
 use super::{Content, Data, Html, Markdown};
+use crate::alert_cli;
 use crate::core::config::Config;
 use crate::core::markdown::MarkdownDataExtractor;
 use crate::core::markdown::MarkdownParser;
@@ -23,6 +24,7 @@ use std::path::PathBuf;
 use colored::Colorize;
 use tera::Context;
 use tracing::info;
+
 
 #[derive(Debug, Clone)]
 pub struct FileContent(String);
@@ -132,7 +134,7 @@ impl FolderBuilder {
             return Ok(());
         }
         let config = Config::read_config()?;
-        info!("Creating {}.", &config.out_dir);
+        alert_cli!(format!("Creating {}.", &config.out_dir.green()), bold);
         create_dir(PathBuf::from(config.out_dir))?;
         Ok(())
     }
@@ -145,7 +147,7 @@ impl FolderBuilder {
                 .to_str()
                 .unwrap()
                 .replace(&config.source, &config.out_dir);
-            info!("Creating {}.", &page.file_name);
+            alert_cli!(format!("Creating {}.", &page.file_name), bold);
             Writer::write(
                 PathBuf::from(format!("{}/{}", config.out_dir, page.file_name)),
                 page.content.clone(),

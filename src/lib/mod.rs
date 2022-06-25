@@ -19,7 +19,6 @@ pub mod error;
 pub mod prelude;
 use colored::{Color, Colorize};
 
-
 #[cfg(test)]
 pub mod tests;
 use crate::core::fs::reader::start_convert_and_parse;
@@ -62,14 +61,19 @@ pub enum ProcessIndicator {
 }
 
 fn sub_process(dir: &str) -> Result<(), Error> {
+
     let global_css = Config::read_config()?.global_css;
     let mut config = Config::read_config()?;
     alert_cli!(format!("Creating the file {}.", "reader".green()), bold);
     let f = read(dir)?;
-    info!("Reading {}", dir);
+    alert_cli!(
+        format!("Reading files in {}.", dir.underline().green()),
+        bold
+    );
     let f_parser = start_convert_and_parse(f);
     info!("Parsing markdown.");
     alert_cli!(format!("Parsing {}", "markdown".green()), bold);
+
     if let Some(true) = global_css {
         let c = HtmlWriter::add_link(f_parser);
         alert_cli!(format!("Adding global {}.", "CSS".green()), bold);
@@ -97,9 +101,8 @@ pub fn process() -> Result<(), Error> {
                             .to_string(),
                     ),
                 ));
-            },
+            }
             _ => return Err(e),
-
         }
     }
     let t_process = thread::spawn(move || -> Result<(), Error> {
