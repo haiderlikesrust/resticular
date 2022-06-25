@@ -62,16 +62,25 @@ pub enum ProcessIndicator {
 }
 
 fn sub_process(dir: &str) -> Result<(), Error> {
-    info!("Creating file reader..");
-    alert_cli!(format!("Creating the file {}", "reader".green()), bold);
+    let global_css = Config::read_config()?.global_css;
+    let mut config = Config::read_config()?;
+    alert_cli!(format!("Creating the file {}.", "reader".green()), bold);
     let f = read(dir)?;
     info!("Reading {}", dir);
     let f_parser = start_convert_and_parse(f);
     info!("Parsing markdown.");
-    let c = HtmlWriter::add_link(f_parser);
-    info!("Adding css");
-    let some = HtmlWriter::replace_markdown(c);
-    info!("Replacing markdown");
+    alert_cli!(format!("Parsing {}", "markdown".green()), bold);
+    if let Some(true) = global_css {
+        let c = HtmlWriter::add_link(f_parser);
+        alert_cli!(format!("Adding global {}.", "CSS".green()), bold);
+        let some = HtmlWriter::replace_markdown(c);
+        alert_cli!(format!("Replacing {}.", "markdown".green()), bold);
+        FolderBuilder::create_folder()?;
+        FolderBuilder::start_creating_files(&some)?;
+        return Ok(());
+    }
+    let some = HtmlWriter::replace_markdown(f_parser);
+    alert_cli!(format!("Replacing {}.", "markdown".green()), bold);
     FolderBuilder::create_folder()?;
     FolderBuilder::start_creating_files(&some)?;
     Ok(())
@@ -106,6 +115,7 @@ pub fn process() -> Result<(), Error> {
                 source,
                 lazy_images: _,
                 routes: _,
+                global_css: _
             } => {
                 sub_process(&source)?;
                 let eye_msg = MsgHandler::new();

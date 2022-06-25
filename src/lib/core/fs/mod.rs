@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, collections::HashMap, hash::Hash};
 use fs_extra::dir::get_size;
 
 use mopa::{Any, mopafy};
@@ -32,6 +32,8 @@ impl Html {
     }
 }
 
+type DataMap = HashMap<String, String>;
+
 
 pub trait Content: Any + Debug { }
 mopafy!{Content}
@@ -43,7 +45,10 @@ impl Markdown {
     pub fn new(d: &str) -> Self {
         Self(d.to_string())
     }
+
+   
 }
+
 
 pub fn build_size() -> Result<f64, Error> {
     let config = Config::read_config()?;

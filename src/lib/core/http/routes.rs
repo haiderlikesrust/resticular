@@ -16,6 +16,7 @@ impl PreRoutes {
     pub fn fix(
         config: &mut Config,
     ) -> Result<(), Error> {
+        
         let data =  Reader::new(config.clone().source.into()).read_other()?;
         for file in data {
             let name = file.path.file_name().unwrap().to_str().unwrap();
@@ -35,6 +36,7 @@ impl PreRoutes {
                 
             }
         }
+
         Ok(())
     }
 }

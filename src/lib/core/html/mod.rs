@@ -1,14 +1,16 @@
 pub mod minify;
+use lol_html::{element, HtmlRewriter, Settings};
+use lol_html::{rewrite_str, RewriteStrSettings};
+
 use regex::Regex;
 use scraper::Selector;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::sync::Mutex;
 
-use lol_html::{element, HtmlRewriter, Settings};
-use lol_html::{rewrite_str, RewriteStrSettings};
-
+use crate::core::config::Route;
 use crate::error::Error;
 
 use super::config::Config;
@@ -18,7 +20,7 @@ use super::{
     fs::{reader::FileHolder, Data, Html},
     IntoInner,
 };
-
+use tera::Tera;
 enum ResticTag {
     ResticMarkdown,
     ResticMarkdownDir,
@@ -51,6 +53,7 @@ impl HtmlWriter {
                 Data::new(Html::new(&String::from_utf8(output).unwrap())),
                 c.ext,
                 c.file_name,
+                c.data,
             ))
         }
         vec_of_outputs
@@ -82,6 +85,7 @@ impl HtmlWriter {
                 Data::new(Html::new(&String::from_utf8(output).unwrap())),
                 c.ext,
                 c.file_name,
+                c.data,
             ))
         }
         ou
@@ -116,6 +120,7 @@ impl HtmlWriter {
                 Data::new(Html::new(&output)),
                 html_page.clone().ext,
                 html_page.clone().file_name,
+                html_page.clone().data,
             ))
         } else {
             Err(Error::PageCheckError)
@@ -159,25 +164,62 @@ impl HtmlWriter {
                     let file_attr: PathBuf =
                         HtmlWriter::get_file_attr_val(&html_page, ResticTag::ResticMarkdownDir)?
                             .into();
-                    println!("{:?}", file_attr.to_str().unwrap());
+
                     let page_path: PathBuf = markdown_page.path.parent().unwrap().into();
-                    println!("{:?}", page_path.to_str().unwrap());
                     if page_path == file_attr {
-                        HtmlWriter::markdown_replicator(html_page, markdown_page, pages);
+                        HtmlWriter::markdown_replicator(html_page, markdown_page, pages)?;
                     }
                 }
             }
         }
         Ok(())
     }
+    fn add_route(file_name: &str, to: &str) -> Result<(), Error> {
+        let routes = Config::read_config()?
+            .routes
+            .iter()
+            .map(|f| f.file_name.clone())
+            .collect::<String>();
+        let r = Route {
+            file_name: file_name.to_string(),
+            to: to.to_string(),
+        };
+        if routes.contains(&r.file_name) {
+            return Ok(());
+        }
+        Config::new_route(file_name.to_owned(), to.to_owned())?;
 
+        Ok(())
+    }
+    /// FOOO-BARR
     fn markdown_replicator(
         html_page: &FileHolder<Data<Html>>,
         markdown_page: &FileHolder<Data<Html>>,
         pages: &mut Vec<FileHolder<Data<Html>>>,
-    ) {
+    ) -> Result<(), Error> {
         let html_page_clone = html_page.clone();
         let markdown_page_clone = markdown_page.clone();
+        let e = format!(
+            "{}-{}.html",
+            html_page_clone.file_name.split('.').collect::<Vec<_>>()[0],
+            markdown_page_clone.file_name.split('.').collect::<Vec<_>>()[0]
+        );
+        let mut temp = Tera::default();
+        let data = markdown_page_clone.data_as_context().unwrap();
+        temp.add_raw_template(&e, &html_page_clone.content.into_inner().into_inner())?;
+
+        HtmlWriter::add_route(
+            &e.clone(),
+            &markdown_page_clone
+                .data
+                .as_ref()
+                .unwrap()
+                .get("route")
+                .unwrap()
+                .to_string(),
+        )?;
+
+        let parsed_file = temp.render(&e, &data)?;
         let e_l_h = vec![element!("restic-markdown-dir", |e| {
             e.append(
                 &markdown_page_clone.content.into_inner().into_inner(),
@@ -187,18 +229,13 @@ impl HtmlWriter {
         })];
 
         let output = rewrite_str(
-            &html_page.content.into_inner().into_inner(),
+            &parsed_file,
             RewriteStrSettings {
                 element_content_handlers: e_l_h,
                 ..RewriteStrSettings::default()
             },
         )
         .unwrap();
-        let e = format!(
-            "{}-{}.html",
-            html_page_clone.file_name.split('.').collect::<Vec<_>>()[0],
-            markdown_page_clone.file_name.split('.').collect::<Vec<_>>()[0]
-        );
         let html_file_path: PathBuf = html_page_clone.path.parent().unwrap().into();
         let file_path = format!("{}/{}", html_file_path.display(), e);
         pages.push(FileHolder::new(
@@ -206,7 +243,9 @@ impl HtmlWriter {
             Data::new(Html::new(&output)),
             "html".to_string(),
             e,
-        ))
+            html_page_clone.data,
+        ));
+        Ok(())
     }
 
     fn start_replacing(
@@ -232,6 +271,7 @@ impl HtmlWriter {
                                 html.content,
                                 html.ext,
                                 html.file_name,
+                                html.data,
                             ));
                         }
                         Err(_) => continue,
@@ -312,6 +352,7 @@ mod test {
             Data::new(Html::new(r#"<img src="foo.png"/>"#)),
             "html".to_owned(),
             "some".to_owned(),
+            None,
         )];
         let d = HtmlWriter::lazy_images(foo)[0]
             .content
