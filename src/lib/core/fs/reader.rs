@@ -1,12 +1,15 @@
+use super::DataMap;
 use super::{Content, Data, Html, Markdown};
 use crate::alert_cli;
 use crate::core::config::Config;
+use crate::core::markdown::MarkdownDataExtractor;
 use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
 use crate::error::Error;
 
 
 
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 use std::fs::copy;
@@ -19,7 +22,9 @@ use std::fs::{read_dir};
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
 use colored::Colorize;
+use tera::Context;
 use tracing::info;
+
 
 #[derive(Debug, Clone)]
 pub struct FileContent(String);
@@ -36,6 +41,7 @@ pub struct FileHolder<T> {
     pub content: T,
     pub ext: String,
     pub file_name: String,
+    pub data: Option<DataMap>
 }
 
 impl PartialEq for FileHolder<Data<Html>> {
@@ -47,13 +53,32 @@ impl PartialEq for FileHolder<Data<Html>> {
     }
 }
 impl<T> FileHolder<T> {
-    pub fn new(path: PathBuf, content: T, ext: String, file_name: String) -> Self {
+    pub fn new(path: PathBuf, content: T, ext: String, file_name: String, data: Option<DataMap>) -> Self {
         Self {
             path,
             content,
             ext,
             file_name,
+            data
         }
+    }
+
+    pub fn data_as_context(&self) -> Option<Context> {
+        match &self.data {
+            Some(d) => {
+                let mut c = Context::new();
+                d.iter().for_each(|i| {
+                    c.insert(&i.0.clone(), &i.1)
+                });
+
+                Some(c)
+            },
+            None => None
+        }
+    }
+
+    pub fn get_data(&self) -> Option<DataMap> {
+        self.data.clone()
     }
 }
 
@@ -218,6 +243,7 @@ impl Reader {
                         file_data,
                         "html".to_owned(),
                         file_name.to_string(),
+                        None
                     );
                     data.push(Box::new(file_holder));
                 }
@@ -228,6 +254,7 @@ impl Reader {
                         file_data,
                         "md".to_owned(),
                         file_name.to_string(),
+                        None
                     );
                     data.push(Box::new(file_holder));
                 }
@@ -244,7 +271,8 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
         let downcasted = file.downcast_ref::<FileHolder<Data<Markdown>>>();
         match downcasted {
             Some(f) => {
-                let file_content = f.clone().content.into_inner();
+                let extracted = MarkdownDataExtractor::new(f.content.clone()).extract();
+                let file_content = extracted.content.clone().into_inner();
                 let markdown_parser = MarkdownParser::new(Data::new(file_content));
                 let f_clone = f.clone();
                 output.push(FileHolder::new(
@@ -252,6 +280,7 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
                     Data::new(markdown_parser.convert().into_inner()),
                     "md".to_string(),
                     f_clone.file_name,
+                    extracted.data
                 ));
             }
             None => {
@@ -265,6 +294,7 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
                             Data::new(file_content),
                             "html".to_string(),
                             f_clone.file_name,
+                            f_clone.data
                         ));
                     }
                     None => {
@@ -276,6 +306,7 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Vec<FileHolder<D
     }
     output
 }
+
 
 pub fn read(path: &str) -> Result<Vec<Box<dyn Content>>, Error> {
     let path = PathBuf::from(path);
@@ -303,6 +334,7 @@ fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Err
                             file_data,
                             "html".to_owned(),
                             file_name.to_string(),
+                            None
                         );
                         data.push(Box::new(file_holder));
                     }
@@ -314,6 +346,7 @@ fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Err
                             file_data,
                             "md".to_owned(),
                             file_name.to_string(),
+                            None
                         );
                         data.push(Box::new(file_holder));
                     }
@@ -352,6 +385,7 @@ fn read_push_other_files(
                             file_data,
                             path_ext.to_owned(),
                             file_name.to_string(),
+                            None
                         );
                         data.push(file_holder);
                     }

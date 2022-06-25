@@ -10,7 +10,7 @@ use crate::error::Error;
 
 use self::routes::PreRoutes;
 
-use super::config::Config;
+use super::{config::Config, };
 #[derive(Debug, Clone)]
 pub struct MsgHandler<T> {
     pub sender: Sender<T>,
@@ -40,6 +40,7 @@ pub fn get_routes() -> Result<Router, Error> {
     let routes = RefCell::new(Router::new());
     PreRoutes::fix(&mut config)?;
     let route_info = config.fix()?.routes;
+    
 
     for route in route_info {
         let r = ServeFile::new(route.file_name);

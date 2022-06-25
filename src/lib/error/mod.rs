@@ -1,4 +1,5 @@
 use thiserror::Error;
+use tera::Error as TemplateError;
 use toml::de::Error as DeError;
 #[derive(Debug, Error)]
 pub enum Error {
@@ -25,7 +26,9 @@ pub enum Error {
     #[error("Config file error: {0}")]
     ConfigFileError(#[from] ConfigError),
     #[error("There is a `restic-markdown` tag without the file attribute.")]
-    ResticMarkdownEmpty
+    ResticMarkdownEmpty,
+    #[error("Template Error: {0}")]
+    TemplateError(#[from] TemplateError)
 }
 
 #[derive(Debug, Error)]
