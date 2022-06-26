@@ -64,27 +64,26 @@ fn sub_process(dir: &str) -> Result<(), Error> {
 
     let global_css = Config::read_config()?.global_css;
     let _config = Config::read_config()?;
-    alert_cli!(format!("Creating the file {}.", "reader".green()), bold);
+    alert_cli!(format!("\u{1F4C1} | Creating the file {}.", "reader".green()), bold);
     let f = read(dir)?;
     alert_cli!(
-        format!("Reading files in {}.", dir.underline().green()),
+        format!("\u{1F4C1} | Reading files in {}.", dir.underline().green()),
         bold
     );
-    let f_parser = start_convert_and_parse(f);
-    info!("Parsing markdown.");
-    alert_cli!(format!("Parsing {}", "markdown".green()), bold);
+    let f_parser = start_convert_and_parse(f)?;
+    alert_cli!(format!("\u{1F4D1} | Parsing {}", "markdown".green()), bold);
 
     if let Some(true) = global_css {
         let c = HtmlWriter::add_link(f_parser);
-        alert_cli!(format!("Adding global {}.", "CSS".green()), bold);
+        alert_cli!(format!("\u{1F534} | Adding global {}.", "CSS".green()), bold);
         let some = HtmlWriter::replace_markdown(c);
-        alert_cli!(format!("Replacing {}.", "markdown".green()), bold);
+        alert_cli!(format!("\u{1F4C3} | Replacing {}.", "markdown".green()), bold);
         FolderBuilder::create_folder()?;
         FolderBuilder::start_creating_files(&some)?;
         return Ok(());
     }
     let some = HtmlWriter::replace_markdown(f_parser);
-    alert_cli!(format!("Replacing {}.", "markdown".green()), bold);
+    alert_cli!(format!("\u{1F4C3} | Replacing {}.", "markdown".green()), bold);
     FolderBuilder::create_folder()?;
     FolderBuilder::start_creating_files(&some)?;
     Ok(())
@@ -179,7 +178,7 @@ pub fn process() -> Result<(), Error> {
     let t_server = thread::spawn(|| -> Result<(), Error> {
         let rt = Runtime::new().expect("Error");
         rt.block_on(async move {
-            info!("Development server started on http://localhost:3000");
+            alert_cli!(format!("Development server started on {} .", "http://localhost:3000".purple()), bold);
             match crate::core::http::server().await {
                 Ok(_) => (),
                 Err(er) => panic!("Server thread panicked: {}", er),

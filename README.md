@@ -17,12 +17,13 @@ I wanted to make a blog and write some blog posts about Rust, I searched some SS
 - Axum powered developer server.
 - Lazy images loading.
 - Easy configuration
+- Tera Templates
 
 ### Features are currently in development
 
 - SEO optimization
 - Server refreshes on file changes (file watcher works but server doesnt refresh)
-- Metadata extraction from markdown files.
+- ~~Metadata extraction from markdown files~~.
 
 **NOTE:** The above list will be updated on every PR and weekly
 
@@ -115,6 +116,60 @@ When you use resticular, the best way to create a new project is to use the CLI,
 
 
 When using resticular, you should use CLI as much as you can, doing things manually can lead to errors and will get you exhausted. 
+
+
+### Usage Of Tera Templates
+**With data.json**
+
+
+data.json
+
+
+```json
+{
+    "author": "Haider Ali",
+    "version": "1.0.0"
+}
+```
+
+foo.html
+
+
+```html
+<p>{{ author }} created Resticular</p>
+```
+
+
+**With markdown metadata**
+
+*NOTE:* You can also use data.json data in files which contain `restic-markdown-dir` tag.
+
+
+
+
+```markdown
+---
+title = "Why I like Rust?"
+---
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eu elit tempus, fermentum dui pulvinar, commodo nisl. Curabitur id ligula ante. Cras id gravida risus. Praesent cursus venenatis mauris, at blandit turpis faucibus quis. Praesent felis arcu, sollicitudin non lectus non, eleifend scelerisque lorem. In turpis lectus, commodo sit amet magna ultricies, gravida vulputate nisl. In posuere magna et dictum porta. Morbi ullamcorper, purus id porta varius, nisl mi vulputate enim, at bibendum velit odio nec velit. Donec lobortis massa eu purus feugiat, non ultrices velit vulputate. Proin commodo in ligula non faucibus. Duis euismod posuere nulla, vel condimentum eros luctus ac.
+```
+
+
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <restic-markdown-dir path="source/markdown"></restic-markdown-dir>
+</body>
+</html>
+```
 
 
 
