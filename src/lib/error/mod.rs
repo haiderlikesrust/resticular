@@ -1,5 +1,6 @@
+use clap::error;
 use thiserror::Error;
-use tera::Error as TemplateError;
+use tera::Error as TeraError;
 use toml::de::Error as DeError;
 #[derive(Debug, Error)]
 pub enum Error {
@@ -27,9 +28,21 @@ pub enum Error {
     ConfigFileError(#[from] ConfigError),
     #[error("There is a `restic-markdown` tag without the file attribute.")]
     ResticMarkdownEmpty,
+    #[error("Tera Template Error: {0}")]
+    TeraError(#[from] TeraError),
     #[error("Template Error: {0}")]
     TemplateError(#[from] TemplateError)
+
 }
+
+#[derive(Debug, Error)]
+pub enum TemplateError {
+    #[error("Invalid Expression: {0}")]
+    InvalidExpression(String),
+    #[error("Invalid Data Type Used: {0}")]
+    InvalidValueTypeInDataFile(String)
+}
+
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
