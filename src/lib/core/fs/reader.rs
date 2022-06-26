@@ -8,9 +8,6 @@ use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
 use crate::error::Error;
 
-
-
-
 use std::fmt::Debug;
 
 use std::fs::copy;
@@ -18,14 +15,13 @@ use std::fs::create_dir;
 
 use std::fs::File;
 
+use colored::Colorize;
+use std::fs::read_dir;
 use std::fs::remove_dir_all;
-use std::fs::{read_dir};
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
-use colored::Colorize;
 use tera::{Context, Tera};
 use tracing::info;
-
 
 #[derive(Debug, Clone)]
 pub struct FileContent(String);
@@ -42,7 +38,7 @@ pub struct FileHolder<T> {
     pub content: T,
     pub ext: String,
     pub file_name: String,
-    pub data: Option<DataMap>
+    pub data: Option<DataMap>,
 }
 
 impl PartialEq for FileHolder<Data<Html>> {
@@ -54,13 +50,19 @@ impl PartialEq for FileHolder<Data<Html>> {
     }
 }
 impl<T> FileHolder<T> {
-    pub fn new(path: PathBuf, content: T, ext: String, file_name: String, data: Option<DataMap>) -> Self {
+    pub fn new(
+        path: PathBuf,
+        content: T,
+        ext: String,
+        file_name: String,
+        data: Option<DataMap>,
+    ) -> Self {
         Self {
             path,
             content,
             ext,
             file_name,
-            data
+            data,
         }
     }
 
@@ -68,13 +70,11 @@ impl<T> FileHolder<T> {
         match &self.data {
             Some(d) => {
                 let mut c = Context::new();
-                d.iter().for_each(|i| {
-                    c.insert(&i.0.clone(), &i.1)
-                });
+                d.iter().for_each(|i| c.insert(&i.0.clone(), &i.1));
 
                 Some(c)
-            },
-            None => None
+            }
+            None => None,
         }
     }
 
@@ -135,7 +135,7 @@ impl FolderBuilder {
             return Ok(());
         }
         let config = Config::read_config()?;
-        alert_cli!(format!("Creating {}.", &config.out_dir.green()), bold);
+        alert_cli!(format!("\u{1F916} | Creating {}.", &config.out_dir.green()), bold);
         create_dir(PathBuf::from(config.out_dir))?;
         Ok(())
     }
@@ -148,7 +148,7 @@ impl FolderBuilder {
                 .to_str()
                 .unwrap()
                 .replace(&config.source, &config.out_dir);
-            alert_cli!(format!("Creating {}.", &page.file_name), bold);
+            alert_cli!(format!("\u{1F916} | Creating {}.", &page.file_name), bold);
             Writer::write(
                 PathBuf::from(format!("{}/{}", config.out_dir, page.file_name)),
                 page.content.clone(),
@@ -163,7 +163,7 @@ impl FolderBuilder {
                 .to_str()
                 .unwrap()
                 .replace(&config.source, &config.out_dir);
-            info!("Creating {}.", &files.file_name);
+            alert_cli!(format!("\u{1F916} | Creating {}.", &files.file_name.green()), bold);
             match files.ext.as_str() {
                 "png" | "jpeg" => continue,
                 _ => {
@@ -186,7 +186,7 @@ impl Writer {
         path: PathBuf,
         content: Data<T>,
     ) -> Result<(), Error> {
-        info!("Writing {}.", path.to_str().unwrap());
+        alert_cli!(format!("\u{1F4DD} | Writing {}.", path.to_str().unwrap().green()), bold);
         let content = content.into_inner().into_inner();
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
@@ -244,7 +244,7 @@ impl Reader {
                         file_data,
                         "html".to_owned(),
                         file_name.to_string(),
-                        None
+                        None,
                     );
                     data.push(Box::new(file_holder));
                 }
@@ -255,7 +255,7 @@ impl Reader {
                         file_data,
                         "md".to_owned(),
                         file_name.to_string(),
-                        None
+                        None,
                     );
                     data.push(Box::new(file_holder));
                 }
@@ -266,13 +266,14 @@ impl Reader {
     }
 }
 
-pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Result<Vec<FileHolder<Data<Html>>>, Error> {
+pub fn start_convert_and_parse(
+    files: Vec<Box<dyn Content>>,
+) -> Result<Vec<FileHolder<Data<Html>>>, Error> {
     let mut output = Vec::new();
     for file in files {
         let downcasted = file.downcast_ref::<FileHolder<Data<Markdown>>>();
         match downcasted {
             Some(f) => {
-            
                 let extracted = MarkdownDataExtractor::new(f.content.clone()).extract();
                 let file_content = extracted.content.clone().into_inner();
                 let markdown_parser = MarkdownParser::new(Data::new(file_content));
@@ -282,7 +283,7 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Result<Vec<FileH
                     Data::new(markdown_parser.convert().into_inner()),
                     "md".to_string(),
                     f_clone.file_name,
-                    extracted.data
+                    extracted.data,
                 ));
             }
             None => {
@@ -299,22 +300,30 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Result<Vec<FileH
                         PageData::extract(&mut context)?;
                         let mut file_content = f.clone().content.into_inner();
                         let f_clone = f.clone();
-                        temp.add_raw_template(&f_clone.file_name, &f_clone.content.into_inner().into_inner())?;
-                        match temp.render(&f_clone.file_name, &context) {
-                            Ok(f) => {
-                                file_content = Html::new(&f);
-                            },
-                            Err(_) => ()
+                        temp.add_raw_template(
+                            &f_clone.file_name,
+                            &f_clone.content.into_inner().into_inner(),
+                        )?;
+                        if file_content.into_inner().contains("restic-markdown-dir") {
+                            output.push(FileHolder::new(
+                                f_clone.path,
+                                Data::new(file_content),
+                                "html".to_string(),
+                                f_clone.file_name,
+                                f_clone.data,
+                            ));
+                        } else {
+                            let oc = temp.render(&f_clone.file_name, &context)?;
+                            file_content = Html::new(&oc);
+                            // -- NOT STABLE --
+                            output.push(FileHolder::new(
+                                f_clone.path,
+                                Data::new(file_content),
+                                "html".to_string(),
+                                f_clone.file_name,
+                                f_clone.data,
+                            ));
                         }
-                        // -- NOT STABLE --
-
-                        output.push(FileHolder::new(
-                            f_clone.path,
-                            Data::new(file_content),
-                            "html".to_string(),
-                            f_clone.file_name,
-                            f_clone.data
-                        ));
                     }
                     None => {
                         panic!("Error")
@@ -325,7 +334,6 @@ pub fn start_convert_and_parse(files: Vec<Box<dyn Content>>) -> Result<Vec<FileH
     }
     Ok(output)
 }
-
 
 pub fn read(path: &str) -> Result<Vec<Box<dyn Content>>, Error> {
     let path = PathBuf::from(path);
@@ -353,7 +361,7 @@ fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Err
                             file_data,
                             "html".to_owned(),
                             file_name.to_string(),
-                            None
+                            None,
                         );
                         data.push(Box::new(file_holder));
                     }
@@ -365,7 +373,7 @@ fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Err
                             file_data,
                             "md".to_owned(),
                             file_name.to_string(),
-                            None
+                            None,
                         );
                         data.push(Box::new(file_holder));
                     }
@@ -404,7 +412,7 @@ fn read_push_other_files(
                             file_data,
                             path_ext.to_owned(),
                             file_name.to_string(),
-                            None
+                            None,
                         );
                         data.push(file_holder);
                     }
@@ -416,7 +424,6 @@ fn read_push_other_files(
         }
     }
 
-
     Ok(())
 }
 
@@ -425,7 +432,14 @@ fn copy_images() -> Result<(), Error> {
     let dir_data = read_dir(format!("{}/assets", config.source))?.collect::<Vec<_>>();
     for image in dir_data {
         let image = image?;
-        copy(image.path(), format!("{}/assets/{}", config.out_dir, image.file_name().to_str().unwrap()))?;
+        copy(
+            image.path(),
+            format!(
+                "{}/assets/{}",
+                config.out_dir,
+                image.file_name().to_str().unwrap()
+            ),
+        )?;
     }
     Ok(())
 }
