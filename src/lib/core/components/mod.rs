@@ -89,58 +89,6 @@ impl Component {
         self.value.clone()
     }
 
-    // pub fn replace(
-    //     components: Vec<Component>,
-    //     pages: &Vec<FileHolder<Data<Html>>>,
-    // ) -> Result<Vec<FileHolder<Data<Html>>>, Error> {
-    //     let mut oc = vec![];
-    //     let oc_ot = RefCell::new(vec![]);
-    //     for page in pages {
-    //         for component in &components {
-    //             let mut output = vec![];
-    //             let c = page.content.into_inner().into_inner();
-
-    //             let mut rewriter = HtmlRewriter::new(
-    //                 Settings {
-    //                     element_content_handlers: vec![element!(component.name(), |el| {
-    //                         el.append(&component.data(), lol_html::html_content::ContentType::Html);
-    //                         println!("CALLED {}", component.name());
-    //                         Ok(())
-    //                     })],
-    //                     ..Settings::default()
-    //                 },
-    //                 |c: &[u8]| output.extend_from_slice(c),
-    //             );
-
-    //             if oc_ot.clone().into_inner().is_empty() {
-    //                 println!("EMPTY ONCE");
-    //                 rewriter.write(c.as_bytes())?;
-    //                 oc_ot.replace(output);
-    //                 continue;
-    //             }
-    //             println!("NOT EMPTY");
-    //             let oc_ot_clone = oc_ot.clone();
-    //             rewriter.write(&oc_ot_clone.into_inner())?;
-    //             continue;
-    //         }
-    //         let page_clone = page.clone();
-
-    //         let holder = FileHolder::new(
-    //             page_clone.path,
-    //             Data::new(Html::new(
-    //                 &String::from_utf8(oc_ot.clone().into_inner()).unwrap(),
-    //             )),
-    //             page_clone.ext,
-    //             page_clone.file_name,
-    //             page_clone.data,
-    //         );
-    //         oc.push(holder);
-
-    //     }
-
-    //     Ok(oc)
-    // }
-
     pub fn replace(
         components: Vec<Component>,
         pages: &Vec<FileHolder<Data<Html>>>,
