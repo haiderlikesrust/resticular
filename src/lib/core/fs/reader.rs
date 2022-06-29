@@ -239,6 +239,9 @@ impl Reader {
             match path_ext {
                 "html" => {
                     let file_data: Data<Html> = Reader::reader_out(path.to_path_buf())?.into();
+                    if file_data.into_inner().into_inner().contains("restic-component") {
+                        continue;
+                    }
                     let file_holder = FileHolder::new(
                         path.clone(),
                         file_data,
