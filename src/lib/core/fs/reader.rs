@@ -135,7 +135,10 @@ impl FolderBuilder {
             return Ok(());
         }
         let config = Config::read_config()?;
-        alert_cli!(format!("\u{1F916} | Creating {}.", &config.out_dir.green()), bold);
+        alert_cli!(
+            format!("\u{1F916} | Creating {}.", &config.out_dir.green()),
+            bold
+        );
         create_dir(PathBuf::from(config.out_dir))?;
         Ok(())
     }
@@ -163,7 +166,10 @@ impl FolderBuilder {
                 .to_str()
                 .unwrap()
                 .replace(&config.source, &config.out_dir);
-            alert_cli!(format!("\u{1F916} | Creating {}.", &files.file_name.green()), bold);
+            alert_cli!(
+                format!("\u{1F916} | Creating {}.", &files.file_name.green()),
+                bold
+            );
             match files.ext.as_str() {
                 "png" | "jpeg" => continue,
                 _ => {
@@ -186,7 +192,10 @@ impl Writer {
         path: PathBuf,
         content: Data<T>,
     ) -> Result<(), Error> {
-        alert_cli!(format!("\u{1F4DD} | Writing {}.", path.to_str().unwrap().green()), bold);
+        alert_cli!(
+            format!("\u{1F4DD} | Writing {}.", path.to_str().unwrap().green()),
+            bold
+        );
         let content = content.into_inner().into_inner();
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
@@ -236,12 +245,11 @@ impl Reader {
         for path in &dir_data {
             let file_name = path.to_str().unwrap().split('.').collect::<Vec<_>>()[0];
             let path_ext = path.extension().unwrap().to_str().unwrap();
+            
             match path_ext {
                 "html" => {
                     let file_data: Data<Html> = Reader::reader_out(path.to_path_buf())?.into();
-                    if file_data.into_inner().into_inner().contains("restic-component") {
-                        continue;
-                    }
+
                     let file_holder = FileHolder::new(
                         path.clone(),
                         file_data,
@@ -359,6 +367,13 @@ fn read_push(path: &PathBuf, data: &mut Vec<Box<dyn Content>>) -> Result<(), Err
                 match path_ext {
                     "html" => {
                         let file_data: Data<Html> = Reader::reader_out(path.to_path_buf())?.into();
+                        if file_data
+                            .file_content
+                            .into_inner()
+                            .contains("restic-component")
+                        {
+                            continue;
+                        }
                         let file_holder = FileHolder::new(
                             path.clone(),
                             file_data,

@@ -1,3 +1,11 @@
+use super::{
+    config::Config,
+    fs::{
+        reader::{FileHolder, Reader},
+        Data,
+    },
+    IntoInner,
+};
 use crate::core::fs::Html;
 use crate::error::Error;
 use axum::http::uri::PathAndQuery;
@@ -7,17 +15,10 @@ use scraper::Selector;
 use soup::NodeExt;
 use soup::{QueryBuilderExt, Soup};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::{fs::read_dir, path::PathBuf};
+use tera::{Context, Tera};
 use tracing_subscriber::fmt::format;
-
-use super::{
-    config::Config,
-    fs::{
-        reader::{FileHolder, Reader},
-        Data,
-    },
-    IntoInner,
-};
 pub struct Component {
     pub name: String,
     pub value: String,
@@ -42,7 +43,6 @@ impl ComponentReader {
                         "md" | "png" | "jpeg" => continue,
                         _ => {
                             let file_data = Reader::reader_out(path.to_path_buf())?;
-                            // let soup = Soup::new(&file_data.into_inner().into_inner());
 
                             let tag =
                                 scraper::Html::parse_fragment(&file_data.into_inner().into_inner());
@@ -89,6 +89,22 @@ impl Component {
         self.value.clone()
     }
 
+    fn props_data(data: &mut Context, component: &Component, page: &FileHolder<Data<Html>>) {
+        let fragment = scraper::Html::parse_fragment(&page.content.into_inner().into_inner());
+        let component_selector = Selector::parse(&component.name()).unwrap();
+
+        for element in fragment.select(&component_selector) {
+            let elements = element.value().attrs().collect::<Vec<_>>();
+            for (attr, value) in elements {
+                if attr.starts_with('$') {
+                    data.insert(attr.replace("$", "").to_owned(), &value.to_owned());
+                } else {
+                    continue;
+                }
+            }
+        }
+    }
+
     pub fn replace(
         components: Vec<Component>,
         pages: &Vec<FileHolder<Data<Html>>>,
@@ -97,13 +113,14 @@ impl Component {
 
         for page in pages {
             let mut output = vec![];
-
+            let mut context = Context::new();
             let mut ele = vec![];
             for component in &components {
                 ele.push(element!(&component.name(), |el| {
                     el.append(&component.data(), lol_html::html_content::ContentType::Html);
                     Ok(())
                 }));
+                Component::props_data(&mut context, component, page);
             }
 
             let mut rewriter = HtmlRewriter::new(
@@ -113,13 +130,15 @@ impl Component {
                 },
                 |c: &[u8]| output.extend_from_slice(c),
             );
+
             rewriter.write(page.content.into_inner().into_inner().as_bytes())?;
+            let mut tera = Tera::default();
+            tera.add_raw_template(&page.file_name, &String::from_utf8(output.clone()).unwrap())?;
+            let ou = tera.render(&page.file_name, &context)?;
             let page_clone = page.clone();
             let holder = FileHolder::new(
                 page_clone.path,
-                Data::new(Html::new(
-                    &String::from_utf8(output.clone()).unwrap(),
-                )),
+                Data::new(Html::new(&ou)),
                 page_clone.ext,
                 page_clone.file_name,
                 page_clone.data,
