@@ -1,3 +1,4 @@
+use crate::core::components::Component;
 use crate::core::fs::watcher::watch;
 
 use crate::core::http::MsgHandler;
@@ -61,7 +62,7 @@ pub enum ProcessIndicator {
 }
 
 fn sub_process(dir: &str) -> Result<(), Error> {
-
+    let components = Component::read()?;
     let global_css = Config::read_config()?.global_css;
     let _config = Config::read_config()?;
     alert_cli!(format!("\u{1F4C1} | Creating the file {}.", "reader".green()), bold);
@@ -83,9 +84,10 @@ fn sub_process(dir: &str) -> Result<(), Error> {
         return Ok(());
     }
     let some = HtmlWriter::replace_markdown(f_parser);
+    let parsed = Component::replace(components, &some)?;
     alert_cli!(format!("\u{1F4C3} | Replacing {}.", "markdown".green()), bold);
     FolderBuilder::create_folder()?;
-    FolderBuilder::start_creating_files(&some)?;
+    FolderBuilder::start_creating_files(&parsed)?;
     Ok(())
 }
 
