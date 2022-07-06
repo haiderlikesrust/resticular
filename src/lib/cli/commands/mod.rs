@@ -39,6 +39,7 @@ to = \"{}\"\n
         create_dir(&project_path)?;
         create_dir(format!("{project_path}/source"))?;
         create_dir(format!("{project_path}/source/assets"))?;
+        create_dir(format!("{project_path}/source/components"))?;
         create_dir(format!("{project_path}/dist"))?;
         let mut config = File::create(format!("{project_path}/resticular.toml"))?;
         config.write_all( DEF_CONFIG.as_bytes())?;

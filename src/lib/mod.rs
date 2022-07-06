@@ -78,9 +78,10 @@ fn sub_process(dir: &str) -> Result<(), Error> {
         let c = HtmlWriter::add_link(f_parser);
         alert_cli!(format!("\u{1F534} | Adding global {}.", "CSS".green()), bold);
         let some = HtmlWriter::replace_markdown(c);
+        let parsed = Component::replace(components, &some)?;
         alert_cli!(format!("\u{1F4C3} | Replacing {}.", "markdown".green()), bold);
         FolderBuilder::create_folder()?;
-        FolderBuilder::start_creating_files(&some)?;
+        FolderBuilder::start_creating_files(&parsed)?;
         return Ok(());
     }
     let some = HtmlWriter::replace_markdown(f_parser);
