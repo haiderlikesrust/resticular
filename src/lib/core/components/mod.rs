@@ -6,19 +6,19 @@ use super::{
     },
     IntoInner,
 };
-use crate::core::fs::Html;
 use crate::error::Error;
+use crate::{alert_cli, core::fs::Html};
 use axum::http::uri::PathAndQuery;
+use colored::Colorize;
 use fs_extra::file;
 use lol_html::{element, HtmlRewriter, Settings};
 use scraper::Selector;
 use soup::NodeExt;
 use soup::{QueryBuilderExt, Soup};
-use std::cell::RefCell;
 use std::collections::HashMap;
+use std::{cell::RefCell, fmt::format};
 use std::{fs::read_dir, path::PathBuf};
 use tera::{Context, Tera};
-use tracing_subscriber::fmt::format;
 pub struct Component {
     pub name: String,
     pub value: String,
@@ -104,6 +104,26 @@ impl Component {
             }
         }
     }
+    fn get_props_data(
+        component: &Component,
+        page: &FileHolder<Data<Html>>,
+    ) -> HashMap<String, String> {
+        let mut data = HashMap::new();
+        let fragment = scraper::Html::parse_fragment(&page.content.into_inner().into_inner());
+        let component_selector = Selector::parse(&component.name()).unwrap();
+
+        for element in fragment.select(&component_selector) {
+            let elements = element.value().attrs().collect::<Vec<_>>();
+            for (attr, value) in elements {
+                if attr.starts_with('$') {
+                    data.insert(attr.replace("$", "").to_owned(), value.to_owned());
+                } else {
+                    continue;
+                }
+            }
+        }
+        data
+    }
 
     pub fn replace(
         components: Vec<Component>,
@@ -120,6 +140,19 @@ impl Component {
                     el.append(&component.data(), lol_html::html_content::ContentType::Html);
                     Ok(())
                 }));
+                let data = Component::get_props_data(component, page);
+                data.iter().for_each(|d| {
+                    if !component.value.contains(&format!("{{ {} }}", d.0)) {
+                        alert_cli!(
+                            format!(
+                                "\u{26a0} | {} unused prop at {} which is declared in {} component",
+                                d.0, page.file_name, component.name()
+                            )
+                            .bold(),
+                            red
+                        );
+                    }
+                });
                 Component::props_data(&mut context, component, page);
             }
 
