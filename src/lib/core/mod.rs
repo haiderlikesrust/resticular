@@ -10,6 +10,7 @@ pub mod markdown;
 pub mod html;
 pub mod http;
 pub mod data;
+pub mod components;
 
 /// This trait basically implements the functionality of returning whats inside the tuple struct.
 /// ```
