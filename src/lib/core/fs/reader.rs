@@ -245,7 +245,7 @@ impl Reader {
         for path in &dir_data {
             let file_name = path.to_str().unwrap().split('.').collect::<Vec<_>>()[0];
             let path_ext = path.extension().unwrap().to_str().unwrap();
-            
+
             match path_ext {
                 "html" => {
                     let file_data: Data<Html> = Reader::reader_out(path.to_path_buf())?.into();
@@ -417,12 +417,18 @@ fn read_push_other_files(
         .collect::<Vec<_>>();
 
     for path in &dir_data {
+        let config = Config::read_config()?;
+        if let Some(v) = config.exclude {
+            if v.contains(&path.to_str().unwrap().to_owned()) {
+                continue;
+            }
+        }
         match path.is_dir() {
             false => {
                 let file_name = path.file_name().unwrap().to_str().unwrap();
                 let path_ext = path.extension().unwrap().to_str().unwrap();
                 match path_ext {
-                    "html" | "md" | "png" | "jpeg" => continue,
+                    "html" | "md" | "png" | "jpeg" | "ico" => continue,
                     _ => {
                         let file_data = Reader::reader_out(path.to_path_buf())?;
                         let file_holder = FileHolder::new(
@@ -447,7 +453,12 @@ fn read_push_other_files(
 
 fn copy_images() -> Result<(), Error> {
     let config = Config::read_config()?;
-    let dir_data = read_dir(format!("{}/assets", config.source))?.collect::<Vec<_>>();
+    let dir_data = match read_dir(format!("{}/assets", config.source)) {
+        Ok(a) => a.collect::<Vec<_>>(),
+        Err(_) => return Err(
+            Error::EssentialFolderNotExist("`assets` folder is an essential folder, it should exist even if its empty or will be kept empty".to_string())
+        )
+    };
     for image in dir_data {
         let image = image?;
         copy(

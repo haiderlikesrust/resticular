@@ -36,6 +36,9 @@ enum Cli {
     New {
         /// Name of the project.
         name: String
+    },
+    Execute {
+        name: String
     }
     
 }
@@ -71,6 +74,9 @@ pub fn start() -> Result<(), Error> {
         },
         Cli::New {name} => {
            Commander::new_cmd(&name)?;
+        },
+        Cli::Execute { name } => {
+            Commander::execute_command(&name)?;
         }
         _ => (),
     }

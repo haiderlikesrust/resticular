@@ -1,8 +1,11 @@
 pub struct Commander;
-use std::env::current_dir;
-use std::fs::{self, File, create_dir};
+use cmd_lib::{run_cmd, run_fun};
 use colored::Colorize;
+use std::env::current_dir;
+use std::fs::{self, create_dir, File};
+use std::process::Command;
 
+use crate::core::config::Config;
 use crate::error::Error;
 use std::io::Write;
 const DEF_CONFIG: &str = r#"
@@ -18,9 +21,13 @@ impl Commander {
         let mut file = fs::OpenOptions::new()
             .write(true)
             .append(true)
-            .open(format!("{}/{}", current_dir()?.to_str().unwrap(), "resticular.toml"))?;
+            .open(format!(
+                "{}/{}",
+                current_dir()?.to_str().unwrap(),
+                "resticular.toml"
+            ))?;
         let new_route = format!(
-"\n
+            "\n
 [[routes]]
 file_name = \"{}\"
 to = \"{}\"\n
@@ -29,7 +36,11 @@ to = \"{}\"\n
         );
 
         write!(file, "{}", new_route)?;
-        println!("Created {} route for {} file", to.bold().white(), file_name.bold().green());
+        println!(
+            "Created {} route for {} file",
+            to.bold().white(),
+            file_name.bold().green()
+        );
         Ok(())
     }
 
@@ -42,10 +53,31 @@ to = \"{}\"\n
         create_dir(format!("{project_path}/source/components"))?;
         create_dir(format!("{project_path}/dist"))?;
         let mut config = File::create(format!("{project_path}/resticular.toml"))?;
-        config.write_all( DEF_CONFIG.as_bytes())?;
+        config.write_all(DEF_CONFIG.as_bytes())?;
         println!("Created new resticular project `{}`.", name.bold().green());
 
         Ok(())
     }
+    pub fn execute_command(name: &str) -> Result<(), Error> {
+        let config = Config::read_config()?;
+        if let Some(commands) = config.command {
+            for command in commands {
+                if name == command.name {
+                    let cmd_clone: &'static str =
+                        Box::leak(command.clone().command.into_boxed_str());
 
+                    let output = duct_sh::sh(&cmd_clone).read();
+                    match output {
+                        Ok(s) => {
+                            println!("{s}")
+                        }, 
+                        Err(_) => println!("Command Errored out")
+                    } 
+                
+                }
+            }
+        }
+
+        Ok(())
+    }
 }

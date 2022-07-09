@@ -120,7 +120,9 @@ pub fn process() -> Result<(), Error> {
                 source,
                 lazy_images: _,
                 routes: _,
-                global_css: _
+                global_css: _,
+                exclude: _,
+                command: _
             } => {
                 sub_process(&source)?;
                 let eye_msg = MsgHandler::new();
