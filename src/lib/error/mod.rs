@@ -31,7 +31,9 @@ pub enum Error {
     #[error("Tera Template Error: {0}")]
     TeraError(#[from] TeraError),
     #[error("Template Error: {0}")]
-    TemplateError(#[from] TemplateError)
+    TemplateError(#[from] TemplateError),
+    #[error("Essential folder does not exist: {0}")]
+    EssentialFolderNotExist(String)
 
 }
 

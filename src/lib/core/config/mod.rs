@@ -12,7 +12,9 @@ pub struct Config {
     pub source: String,
     pub lazy_images: Option<bool>,
     pub routes: Vec<Route>,
-    pub global_css: Option<bool>
+    pub global_css: Option<bool>,
+    pub exclude: Option<Vec<String>>,
+    pub command: Option<Vec<Cmd>>
 }
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 pub struct Route {
@@ -20,6 +22,11 @@ pub struct Route {
     pub file_name: String,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct Cmd {
+    pub name: String,
+    pub command: String
+}
 impl Config {
     pub fn read_config() -> Result<Self, Error> {
         let current_dir = current_dir()?;

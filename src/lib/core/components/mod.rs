@@ -29,10 +29,17 @@ struct ComponentReader;
 
 impl ComponentReader {
     fn read(path: &str, data: &mut Vec<Component>) -> Result<(), Error> {
-        let components = read_dir(path)?
-            .map(|f| f.unwrap())
-            .map(|f| f.path())
-            .collect::<Vec<_>>();
+        let components = match read_dir(path){
+            Ok(dir) => {
+                dir.map(|f| f.unwrap())
+                .map(|f| f.path())
+                .collect::<Vec<_>>()
+            },
+            Err(_) => return Err(
+                Error::EssentialFolderNotExist("`components` folder is an essential folder, it should exist even if its empty or will be kept empty".to_string())
+            )
+
+        };
 
         for path in &components {
             match path.is_dir() {
@@ -146,7 +153,9 @@ impl Component {
                         alert_cli!(
                             format!(
                                 "\u{26a0} | {} unused prop at {} which is declared in {} component",
-                                d.0, page.file_name, component.name()
+                                d.0,
+                                page.file_name,
+                                component.name()
                             )
                             .bold(),
                             red
