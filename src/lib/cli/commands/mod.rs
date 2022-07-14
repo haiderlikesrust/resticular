@@ -63,6 +63,32 @@ to = \"{}\"\n
         if let Some(commands) = config.command {
             for command in commands {
                 if name == command.name {
+                    if let Some(pre_commands) = &command.pre_commands {
+                        for pre_command in pre_commands {
+                            let pre_command: &'static str =
+                                Box::leak(pre_command.clone().into_boxed_str());
+                            alert_cli!(
+                                format!("Executing Precommand: {}", &pre_command).green(),
+                                bold
+                            );
+                            let output = duct_sh::sh(&pre_command).read();
+                            match output {
+                                Ok(s) => {
+                                    println!("{s}")
+                                }
+                                Err(_) => {
+                                    alert_cli!(
+                                        format!(
+                                            "Pre Command: {} has an error, please look into it.",
+                                            pre_command
+                                        )
+                                        .red(),
+                                        bold
+                                    );
+                                }
+                            }
+                        }
+                    }
                     let cmd_clone: &'static str =
                         Box::leak(command.clone().command.into_boxed_str());
 
@@ -70,11 +96,66 @@ to = \"{}\"\n
                     match output {
                         Ok(s) => {
                             println!("{s}")
-                        }, 
-                        Err(_) => println!("Command Errored out")
-                    } 
-                
+                        }
+                        Err(_) => println!("Command Errored out"),
+                    }
                 }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn commands() -> Result<(), Error> {
+        let config = Config::read_config()?;
+        match config.command {
+            Some(c) => {
+                for command in c {
+                    match command.pre_commands {
+                        Some(pre) => {
+                            let mut pre_commands = String::new();
+                            for p in &pre {
+                                if pre.len() == 1 {
+                                    pre_commands.push_str(
+                                        &format!("{p} ").bold().green(),
+                                    );
+                                } else if pre.last().unwrap() == p {
+                                    pre_commands.push_str(
+                                        &format!("{p} ").bold().green(),
+                                    );
+                                } else {
+                                    pre_commands.push_str(
+                                    &format!("{p} {}", format!(">> ").red()).bold().green(),
+                                );
+                                }
+                                
+                            }
+                            alert_cli!(
+                                format!(
+                                    "Name: {}\nCommand: {}\nPreCommands:  {pre_commands}\n\n",
+                                    command.name, command.command
+                                ).green(),
+                                bold
+                            );
+                        }
+                        None => {
+                            alert_cli!(
+                                format!(
+                                    "Name: {}\nCommand: {}\nPreCommands:  None\n\n",
+                                    command.name, command.command
+                                )
+                                .green(),
+                                bold
+                            );
+                        }
+                    }
+                }
+            }
+            None => {
+                alert_cli!(
+                    format!("No secondary commands. Add them by editing the config file.").green(),
+                    bold
+                )
             }
         }
 

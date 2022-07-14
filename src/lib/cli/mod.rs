@@ -37,9 +37,12 @@ enum Cli {
         /// Name of the project.
         name: String
     },
+    /// Execute a secondary command.
     Execute {
         name: String
-    }
+    },
+    /// Secondary command list.
+    Commands
     
 }
 
@@ -77,6 +80,9 @@ pub fn start() -> Result<(), Error> {
         },
         Cli::Execute { name } => {
             Commander::execute_command(&name)?;
+        },
+        Cli::Commands => {
+            Commander::commands()?;
         }
         _ => (),
     }

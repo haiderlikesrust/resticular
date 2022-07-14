@@ -11,6 +11,7 @@ pub mod html;
 pub mod http;
 pub mod data;
 pub mod components;
+pub mod minifier;
 
 /// This trait basically implements the functionality of returning whats inside the tuple struct.
 /// ```

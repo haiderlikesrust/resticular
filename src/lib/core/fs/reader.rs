@@ -6,6 +6,7 @@ use crate::core::data::PageData;
 use crate::core::markdown::MarkdownDataExtractor;
 use crate::core::markdown::MarkdownParser;
 use crate::core::IntoInner;
+use crate::core::minifier::Minifier;
 use crate::error::Error;
 
 use std::fmt::Debug;
@@ -430,7 +431,16 @@ fn read_push_other_files(
                 match path_ext {
                     "html" | "md" | "png" | "jpeg" | "ico" => continue,
                     _ => {
-                        let file_data = Reader::reader_out(path.to_path_buf())?;
+                        let mut file_data = Reader::reader_out(path.to_path_buf())?;
+                        match path_ext {
+                            "js" => {
+                                Minifier::minify(&mut file_data, file_name, crate::core::minifier::MinifyType::JavaScript);
+                            }
+                            "css" => {
+                                Minifier::minify(&mut file_data, file_name, crate::core::minifier::MinifyType::CSS);
+                            }
+                            _ => ()
+                        }
                         let file_holder = FileHolder::new(
                             path.clone(),
                             file_data,
