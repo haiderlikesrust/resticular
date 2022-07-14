@@ -1,4 +1,3 @@
-use clap::error;
 use thiserror::Error;
 use tera::Error as TeraError;
 use toml::de::Error as DeError;
