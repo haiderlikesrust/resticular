@@ -6,6 +6,17 @@ Just kidding I haven't ran any benchmarks.
 
 Resticular is a SSG, designed to be user friendly. It currently in development, I decided to open the repo so people can contribute, if they would like to.
 
+
+### Updates
+- Javascript and CSS minification
+- Better Errors
+- Reusable Components with Props
+- Tera templates
+- Custom Port
+- Folder or file excludation
+- Secondary commands
+- much more..
+
 ### Motivation
 
 I wanted to make a blog and write some blog posts about Rust, I searched some SSGs. I found Hugo (really hated), Gatsby (react thingy) and many more. They weren't fulfilling my needs. I decided to wear my developer cap and make my own SSG, simple and fast (I really dunno). The reason I didn't stick with Gatsby is I had to write JSX, I do know react but I just don't want to touch it and coming towards to Hugo its not my type.

@@ -2655,7 +2655,7 @@ dependencies = [
 
 [[package]]
 name = "resticular"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "axum",
  "clap",
