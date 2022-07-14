@@ -14,7 +14,8 @@ pub struct Config {
     pub routes: Vec<Route>,
     pub global_css: Option<bool>,
     pub exclude: Option<Vec<String>>,
-    pub command: Option<Vec<Cmd>>
+    pub command: Option<Vec<Cmd>>,
+    pub port: Option<u16>
 }
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 pub struct Route {
@@ -25,7 +26,8 @@ pub struct Route {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Cmd {
     pub name: String,
-    pub command: String
+    pub command: String,
+    pub pre_commands: Option<Vec<String>>
 }
 impl Config {
     pub fn read_config() -> Result<Self, Error> {

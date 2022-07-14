@@ -122,7 +122,8 @@ pub fn process() -> Result<(), Error> {
                 routes: _,
                 global_css: _,
                 exclude: _,
-                command: _
+                command: _,
+                port: p
             } => {
                 sub_process(&source)?;
                 let eye_msg = MsgHandler::new();
@@ -181,9 +182,14 @@ pub fn process() -> Result<(), Error> {
     });
 
     let t_server = thread::spawn(|| -> Result<(), Error> {
+        let p = Config::read_config()?.port;
         let rt = Runtime::new().expect("Error");
         rt.block_on(async move {
-            alert_cli!(format!("Development server started on {} .", "http://localhost:3000".purple()), bold);
+            let port = match p {
+                Some(a) => a,
+                None => 3000
+            };
+            alert_cli!(format!("Development server started on {} .", format!("http://localhost:{}", port).purple()), bold);
             match crate::core::http::server().await {
                 Ok(_) => (),
                 Err(er) => panic!("Server thread panicked: {}", er),
