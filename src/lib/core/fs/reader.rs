@@ -435,10 +435,7 @@ fn read_push_other_files(
                         match path_ext {
                             "js" => {
                                 Minifier::minify(&mut file_data, file_name, crate::core::minifier::MinifyType::JavaScript);
-                            }
-                            "css" => {
-                                Minifier::minify(&mut file_data, file_name, crate::core::minifier::MinifyType::CSS);
-                            }
+                            },
                             _ => ()
                         }
                         let file_holder = FileHolder::new(

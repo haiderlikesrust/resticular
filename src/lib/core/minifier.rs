@@ -51,29 +51,29 @@ impl Minifier {
         .expect(&format!("Look into {} file, there is an error", &file_name))
         .code
     }
-    pub fn css_core_minify(v: &str, file_name: &str) -> String {
-        let stylesheet = StyleSheet::parse(
-            &file_name,
-            &v,
-            ParserOptions {
-                ..Default::default()
-            },
-        );
-        match stylesheet {
-            Ok(mut val) => {
-                val.minify(MinifyOptions::default()).unwrap();
-                let res = val.to_css(PrinterOptions::default()).unwrap();
-                res.code
-            }
-            Err(e) => {
-                panic!(
-                    "Look into {} file, there is an error. [ERROR: {}]",
-                    &file_name,
-                    e.to_string()
-                );
-            }
-        }
-    }
+    // pub fn css_core_minify(v: &str, file_name: &str) -> String {
+    //     let stylesheet = StyleSheet::parse(
+    //         &file_name,
+    //         &v,
+    //         ParserOptions {
+    //             ..Default::default()
+    //         },
+    //     );
+    //     match stylesheet {
+    //         Ok(mut val) => {
+    //             val.minify(MinifyOptions::default()).unwrap();
+    //             let res = val.to_css(PrinterOptions::default()).unwrap();
+    //             res.code
+    //         }
+    //         Err(e) => {
+    //             panic!(
+    //                 "Look into {} file, there is an error. [ERROR: {}]",
+    //                 &file_name,
+    //                 e.to_string()
+    //             );
+    //         }
+    //     }
+    // }
     pub fn minify(content: &mut Data<FileContent>, file_name: &str, tt: MinifyType) {
         match tt {
             MinifyType::JavaScript => {
@@ -81,11 +81,7 @@ impl Minifier {
                 let update_content = Minifier::js_core_minify(&c, file_name);
                 content.file_content = FileContent::new(update_content);
             }
-            MinifyType::CSS => {
-                let c = content.into_inner().into_inner();
-                let update_content = Minifier::css_core_minify(&c, file_name);
-                content.file_content = FileContent::new(update_content);
-            }
+            _ => ()
         }
     }
 }

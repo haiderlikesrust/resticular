@@ -8,7 +8,7 @@ Resticular is a SSG, designed to be user friendly. It currently in development, 
 
 
 ### Updates
-- Javascript and CSS minification
+- Javascript and ~~CSS minification~~
 - Better Errors
 - Reusable Components with Props
 - Tera templates
